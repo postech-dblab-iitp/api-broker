@@ -1,0 +1,106 @@
+
+## Automake files
+Makefile
+Makefile.in
+/aclocal.m4
+/autom4te.cache/
+/config/
+/configure
+.deps/
+config.h
+config.log
+config.status
+/config.h.in
+libtool
+stamp-h1
+libedit.pc
+
+
+## C files
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+# *.lib # we have external dependencies
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+# *.dll # we have external dependencies
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+
+## CUBRID install files
+.libs/
+broker/broker_monitor
+broker/brokerutil
+broker/api_broker
+broker/api_cas
+.installed
+
+## Visual Studio 2008 generated files
+Win32/
+x64/
+x86
+*.user
+*.ncb
+*.suo
+*.ilk
+# *.pdb # we have external dependencies
+/win/install/CUBRID_Debug_Win32/
+/win/install/CUBRID_Release_Win32/
+/win/install/CUBRID_Debug_x86/
+/win/install/CUBRID_Release_x86/
+/win/install/CUBRID_Debug_x64/
+/win/install/CUBRID_Release_x64/
+/win/cubridtray/Debug/
+
+## Windows 3rdparty
+/win/3rdparty/Install/
+/win/3rdparty/Download/
+
+## MISC
+*.swp
+*.bak
+*.*~
+*.*.orig
+tags
+cscope.*
+
+## popular build directories
+Debug/
+Release/
+build_x86_64_debug/
+build_x86_64_release/
+build_x86_64_coverage/
+build_x86_64_profile/
+
+## Development Environments
+# Visual Studio Code
+.vscode/*
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix

@@ -1,0 +1,287 @@
+#!/bin/sh
+
+# Display usage
+cpack_usage()
+{
+  cat <<EOF
+Usage: $0 [options]
+Options: [defaults in brackets after descriptions]
+  --help            print this message
+  --prefix=dir      directory in which to install
+  --include-subdir  include the @CPACK_PACKAGE_FILE_NAME@ subdirectory
+  --exclude-subdir  exclude the @CPACK_PACKAGE_FILE_NAME@ subdirectory
+EOF
+  exit 1
+}
+
+cpack_echo_exit()
+{
+  echo $1
+  exit 1
+}
+
+# Display version
+cpack_version()
+{
+  echo "@CPACK_PACKAGE_NAME@ Installer Version: @CPACK_PACKAGE_VERSION@, Copyright (c) @CPACK_PACKAGE_VENDOR@"
+}
+
+# Helper function to fix windows paths.
+cpack_fix_slashes ()
+{
+  echo "$1" | sed 's/\\/\//g'
+}
+
+interactive=TRUE
+cpack_skip_license=FALSE
+cpack_include_subdir=""
+for a in "$@CPACK_AT_SIGN@"; do
+  if echo $a | grep "^--prefix=" > /dev/null 2> /dev/null; then
+    cpack_prefix_dir=`echo $a | sed "s/^--prefix=//"`
+    cpack_prefix_dir=`cpack_fix_slashes "${cpack_prefix_dir}"`
+  fi
+  if echo $a | grep "^--help" > /dev/null 2> /dev/null; then
+    cpack_usage 
+  fi
+  if echo $a | grep "^--version" > /dev/null 2> /dev/null; then
+    cpack_version 
+    exit 2
+  fi
+  if echo $a | grep "^--include-subdir" > /dev/null 2> /dev/null; then
+    cpack_include_subdir=TRUE
+  fi
+  if echo $a | grep "^--exclude-subdir" > /dev/null 2> /dev/null; then
+    cpack_include_subdir=FALSE
+  fi
+  if echo $a | grep "^--skip-license" > /dev/null 2> /dev/null; then
+    cpack_skip_license=TRUE
+  fi
+done
+
+if [ "x${cpack_include_subdir}x" != "xx" -o "x${cpack_skip_license}x" = "xTRUEx" ]
+then
+  interactive=FALSE
+fi
+
+cpack_version
+echo "This is a self-extracting archive."
+toplevel="`pwd`"
+if [ "x${cpack_prefix_dir}x" != "xx" ]
+then
+  toplevel="${cpack_prefix_dir}"
+fi
+
+echo "The archive will be extracted to: ${toplevel}"
+
+if [ "x${interactive}x" = "xTRUEx" ]
+then
+  echo ""
+  echo "If you want to stop extracting, please press <ctrl-C>."
+
+  if [ "x${cpack_skip_license}x" != "xTRUEx" ]
+  then
+    more << '____cpack__here_doc____'
+@CPACK_RESOURCE_FILE_LICENSE_CONTENT@
+____cpack__here_doc____
+    echo
+    echo "Do you accept the license? [yN]: "
+    read line leftover
+    case ${line} in
+      y* | Y*)
+        cpack_license_accepted=TRUE;;
+      *)
+        echo "License not accepted. Exiting ..."
+        exit 1;;
+    esac
+  fi
+
+  if [ "x${cpack_include_subdir}x" = "xx" ]
+  then
+    echo "By default the @CPACK_PACKAGE_NAME@ will be installed in:"
+    echo "  \"${toplevel}/@CPACK_PACKAGE_FILE_NAME@\""
+    echo "Do you want to include the subdirectory @CPACK_PACKAGE_FILE_NAME@?"
+    echo "Saying no will install in: \"${toplevel}\" [Yn]: "
+    read line leftover
+    cpack_include_subdir=TRUE
+    case ${line} in
+      n* | N*)
+        cpack_include_subdir=FALSE
+    esac
+  fi
+fi
+
+if [ "x${cpack_include_subdir}x" = "xTRUEx" ]
+then
+  toplevel="${toplevel}/@CPACK_PACKAGE_FILE_NAME@"
+  mkdir -p "${toplevel}"
+fi
+echo
+echo "Using target directory: ${toplevel}"
+
+# Notice for CUBRID
+echo ""
+echo "Since CUBRID broker and server versions should match, please make sure that you are running the same version if you operate them in separate machines."
+echo "Do you want to continue? [Yn] : "
+read line leftover
+case ${line} in
+  n* | N*)
+    exit 1;;
+esac
+# Notice for CUBRID
+
+echo "Extracting, please wait..."
+echo ""
+
+# take the archive portion of this file and pipe it to tar
+# the NUMERIC parameter in this command should be one more
+# than the number of lines in this header file
+# there are tails which don't understand the "-n" argument, e.g. on SunOS
+# OTOH there are tails which complain when not using the "-n" argument (e.g. GNU)
+# so at first try to tail some file to see if tail fails if used with "-n"
+# if so, don't use "-n"
+use_new_tail_syntax="-n"
+tail $use_new_tail_syntax +1 "$0" > /dev/null 2> /dev/null || use_new_tail_syntax=""
+
+tail $use_new_tail_syntax +###CPACK_HEADER_LENGTH### "$0" | gunzip | (cd "${toplevel}" && tar xf - 2> /dev/null) || cpack_echo_exit "Problem unpacking the @CPACK_PACKAGE_FILE_NAME@"
+
+echo "Unpacking finished successfully"
+
+#
+# post-setup for CUBRID
+#
+
+# environment variables for *csh
+cubrid_csh_envfile="$HOME/.cubrid.csh"
+cp ${toplevel}/share/scripts/cubrid.csh ${cubrid_csh_envfile}-@CPACK_PACKAGE_VERSION@
+sed -i '/setenv CUBRID /d' ${cubrid_csh_envfile}-@CPACK_PACKAGE_VERSION@
+sed -i "/CUBRID_DATABASES/isetenv CUBRID $toplevel" ${cubrid_csh_envfile}-@CPACK_PACKAGE_VERSION@
+# environment variables for *sh
+cubrid_sh_envfile="$HOME/.cubrid.sh"
+cp ${toplevel}/share/scripts/cubrid.sh ${cubrid_sh_envfile}-@CPACK_PACKAGE_VERSION@
+sed -i "/CUBRID=/d" ${cubrid_sh_envfile}-@CPACK_PACKAGE_VERSION@
+sed -i "/CUBRID_DATABASE/iexport CUBRID=${toplevel}" ${cubrid_sh_envfile}-@CPACK_PACKAGE_VERSION@
+
+for e in "$cubrid_csh_envfile" "$cubrid_sh_envfile"; do
+  if [ -r "${e}" ]; then
+    echo "Copying old ${e} to ${e}.bak ..."
+    mv -f "${e}" "${e}.bak"
+  fi
+  mv "${e}-@CPACK_PACKAGE_VERSION@" "${e}"
+done
+
+# append script for executing .cubrid.sh to .bash_profile
+PRODUCT_NAME="CUBRID"
+CUBRID_SH_INSTALLED=1
+if [ -z "$SHELL" ];then
+   if [ ! -r /etc/passwd ];then
+      user_sh="bash"
+   else
+      user_name=$(id -nu)
+      user_sh=$(egrep -w "^$user_name" /etc/passwd | cut -d':' -f7-7)
+      user_sh=${user_sh:-none}
+      user_sh=$(basename $user_sh)
+   fi
+else
+  user_sh=$(basename $SHELL)
+fi
+
+bash_exist=1
+case $user_sh in
+	zsh)
+		sh_profile=$HOME/.zshrc
+		;;
+	bash)
+		sh_profile=$HOME/.bash_profile
+		;;
+	sh)
+		sh_profile=$HOME/.profile
+		;;
+	csh | tcsh)
+		sh_profile=$HOME/.cshrc
+		;;
+	*)
+		# if $sh_profile is null install script will stop following grep
+		echo "$user_sh: unknown SHELL, force set to /bin/bash"
+		sh_profile=$HOME/.bash_profile
+		CUBRID_SH_INSTALLED=0
+		;;
+esac
+
+if [ ! -f $sh_profile ];then
+  bash_exist=0
+  touch $sh_profile
+fi
+
+append_profile=$(grep "${PRODUCT_NAME} environment" $sh_profile)
+
+if [ -z "$append_profile" ];then
+  echo '#-------------------------------------------------------------------------------' >> $sh_profile
+  if [ $? -ne 0 ];then
+    CUBRID_SH_INSTALLED=0
+    echo "Please check your permission for file $sh_profile"
+  else
+    echo '# set '${PRODUCT_NAME}' environment variables'                                    >> $sh_profile
+    echo '#-------------------------------------------------------------------------------' >> $sh_profile
+
+    case $user_sh in
+      bash | sh)
+        echo 'if [ -f $HOME/.cubrid.sh ];then'                                              >> $sh_profile
+        echo '. $HOME/.cubrid.sh'                                                           >> $sh_profile
+        echo 'fi'                                                                           >> $sh_profile
+        ;;
+      csh | tcsh)
+        echo 'if ( -f ~/.cubrid.csh ) then' 		>> $sh_profile
+        echo '  source ~/.cubrid.csh' 			>> $sh_profile
+        echo 'endif' 					>> $sh_profile
+        ;;
+      zsh)
+        echo 'if [ -f $HOME/.cubrid.sh ];then'                                              >> $sh_profile
+        echo '  source $HOME/.cubrid.sh'                                                    >> $sh_profile
+        echo 'fi'                                                                           >> $sh_profile
+        ;;
+      *)
+        CUBRID_SH_INSTALLED=0
+        ;;
+    esac
+  fi	# $? - ne 0
+fi	# -z "$append_profile"
+
+if [ $CUBRID_SH_INSTALLED -eq 1 ] && [ $bash_exist -eq 0 ];then
+  echo "Notification: $sh_profile is created"
+fi
+
+# create a demo db
+if [ -x "${toplevel}/demo/make_cubrid_demo.sh" ]; then
+  . ${cubrid_sh_envfile}
+  (mkdir -p $CUBRID_DATABASES/demodb && cd $CUBRID_DATABASES/demodb && $CUBRID/demo/make_cubrid_demo.sh > /dev/null 2>&1)
+  if [ $? = 0 ]; then
+    echo "demodb has been successfully created."
+  else
+    echo "Cannot create demodb."
+  fi
+fi
+
+echo ""
+echo "If you want to use CUBRID, run the following command to set required environment variables."
+if [ $CUBRID_SH_INSTALLED -eq 0 ];then
+	echo "(or you can add the command into your current shell profile file to set permanently)"
+fi
+case "$SHELL" in
+  */csh | */tcsh)
+    echo "  $ source $cubrid_csh_envfile"
+    ;;
+  */zsh)
+    echo "  $ source $cubrid_sh_envfile"
+    ;;
+  *)
+    echo "  $ . $cubrid_sh_envfile"
+    ;;
+esac
+echo ""
+
+
+exit 0
+#-----------------------------------------------------------
+#      Start of TAR.GZ file
+#-----------------------------------------------------------;
+
