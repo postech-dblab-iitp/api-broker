@@ -41,6 +41,7 @@
 #include "cas_common.h"
 #include "cas_handle.h"
 #include "cas_log.h"
+#include "s62.h"
 
 #define SRV_HANDLE_ALLOC_SIZE		256
 
@@ -288,7 +289,8 @@ hm_qresult_end (T_SRV_HANDLE * srv_handle, char free_flag)
   T_QUERY_RESULT *q_result;
   int i;
 
-#if !defined (FOR_API_CAS)
+ cas_log_write (0, true,  "--hm_qresult_end");
+
   q_result = srv_handle->q_result;
   if (q_result)
     {
@@ -308,7 +310,8 @@ hm_qresult_end (T_SRV_HANDLE * srv_handle, char free_flag)
 
 	  if (q_result[i].column_info)
 	    {
-	      db_query_format_free ((DB_QUERY_TYPE *) q_result[i].column_info);
+//	      neet to clear column_info
+//	      db_query_format_free ((DB_QUERY_TYPE *) q_result[i].column_info);
 	    }
 
 	  q_result[i].column_info = NULL;
@@ -334,7 +337,6 @@ hm_qresult_end (T_SRV_HANDLE * srv_handle, char free_flag)
 
   srv_handle->cur_result = NULL;
   srv_handle->has_result_set = false;
-#endif
 }
 
 void
@@ -358,46 +360,27 @@ hm_col_update_info_clear (T_COL_UPDATE_INFO * col_update_info)
 static void
 srv_handle_content_free (T_SRV_HANDLE * srv_handle)
 {
-#if !defined (FOR_API_CAS)
+cas_log_write (0, true, "--srv_handle_content_free [%d]", srv_handle->schema_type);
   FREE_MEM (srv_handle->sql_stmt);
-  ux_prepare_call_info_free (srv_handle->prepare_call_info);
+//  ux_prepare_call_info_free (srv_handle->prepare_call_info);
 
-  if (srv_handle->schema_type < 0 || srv_handle->schema_type == CCI_SCH_CLASS
-      || srv_handle->schema_type == CCI_SCH_VCLASS || srv_handle->schema_type == CCI_SCH_ATTRIBUTE
-      || srv_handle->schema_type == CCI_SCH_CLASS_ATTRIBUTE || srv_handle->schema_type == CCI_SCH_QUERY_SPEC
-      || srv_handle->schema_type == CCI_SCH_DIRECT_SUPER_CLASS || srv_handle->schema_type == CCI_SCH_PRIMARY_KEY
-      || srv_handle->schema_type == CCI_SCH_ATTR_WITH_SYNONYM)
+  if (srv_handle->schema_type < 0) 
     {
       hm_qresult_end (srv_handle, TRUE);
       hm_session_free (srv_handle);
     }
-  else if (srv_handle->schema_type == CCI_SCH_CLASS_PRIVILEGE || srv_handle->schema_type == CCI_SCH_ATTR_PRIVILEGE
-	   || srv_handle->schema_type == CCI_SCH_SUPERCLASS || srv_handle->schema_type == CCI_SCH_SUBCLASS)
+  else if (srv_handle->schema_type == CCI_SCH_CLASS || srv_handle->schema_type == CCI_SCH_VCLASS)
     {
-      FREE_MEM (srv_handle->session);
+      release_meta_results ((S62_METADATA *) srv_handle->session);
+      srv_handle->session = NULL;
       srv_handle->cur_result = NULL;
     }
-  else if (srv_handle->schema_type == CCI_SCH_TRIGGER)
+  else if (srv_handle->schema_type == CCI_SCH_ATTRIBUTE)
     {
-      if (srv_handle->session)
-	{
-	  db_objlist_free ((DB_OBJLIST *) (srv_handle->session));
-	}
+      release_property_results ((S62_PROPERTY *) srv_handle->session);
+      srv_handle->session = NULL;
       srv_handle->cur_result = NULL;
     }
-  else if (srv_handle->schema_type == CCI_SCH_IMPORTED_KEYS || srv_handle->schema_type == CCI_SCH_EXPORTED_KEYS
-	   || srv_handle->schema_type == CCI_SCH_CROSS_REFERENCE)
-    {
-      T_FK_INFO_RESULT *fk_res = (T_FK_INFO_RESULT *) srv_handle->session;
-
-      if (fk_res != NULL)
-	{
-	  release_all_fk_info_results (fk_res);
-	  srv_handle->session = NULL;
-	}
-      srv_handle->cur_result = NULL;
-    }
-#endif
 }
 
 static void
@@ -442,16 +425,5 @@ hm_srv_handle_get_current_count (void)
 void
 hm_set_current_srv_handle (int h_id)
 {
-#if defined (FOR_API_CAS)
   current_handle_id = h_id;
-#else
-  if (tran_is_in_libcas ())
-    {
-      /* do nothing */
-    }
-  else
-    {
-      current_handle_id = h_id;
-    }
-#endif
 }

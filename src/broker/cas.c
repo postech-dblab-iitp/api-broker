@@ -172,7 +172,7 @@ static T_SERVER_FUNC server_fn_table[] = {
   fn_not_supported,		/* API_CAS_FC_GET_CLASS_NUM_OBJS */
   fn_not_supported,		/* API_CAS_FC_OID_CMD */
   fn_not_supported,		/* API_CAS_FC_COLLECTION */
-  fn_not_supported,		/* API_CAS_FC_NEXT_RESULT */
+  fn_next_result,		/* API_CAS_FC_NEXT_RESULT */
   fn_not_supported,		/* API_CAS_FC_EXECUTE_BATCH */
   fn_not_supported,		/* API_CAS_FC_EXECUTE_ARRAY */
   fn_not_supported,		/* API_CAS_FC_CURSOR_UPDATE */
@@ -1159,71 +1159,6 @@ process_request (SOCKET sock_fd, T_NET_BUF * net_buf, T_REQ_INFO * req_info)
 
   old_con_status = as_info->con_status;
 
-  if (cas_shard_flag == ON)
-    {
-      /* set req_info->client_version in net_read_process */
-      err_code = net_read_process (sock_fd, &client_msg_header, req_info);
-      if (err_code < 0)
-	{
-	  const char *cas_log_msg = NULL;
-	  net_write_error (sock_fd, req_info->client_version, req_info->driver_info, cas_msg_header.info_ptr,
-			   cas_info_size, CAS_ERROR_INDICATOR, CAS_ER_COMMUNICATION, NULL);
-	  fn_ret = FN_CLOSE_CONN;
-
-	  if (is_net_timed_out ())
-	    {
-	      if (as_info->reset_flag == TRUE)
-		{
-		  cas_log_msg = "CONNECTION RESET";
-		}
-	      else if (get_graceful_down_timeout () > 0)
-		{
-		  cas_log_msg = "SESSION TIMEOUT AND EXPIRE IDLE TIMEOUT";
-		  fn_ret = FN_GRACEFUL_DOWN;
-		}
-	      else
-		{
-		  if (as_info->con_status == CON_STATUS_IN_TRAN)
-		    {
-		      cas_log_msg = "SESSION TIMEOUT";
-		    }
-		  else
-		    {
-		      cas_log_msg = "CONNECTION WAIT TIMEOUT";
-		    }
-		}
-	    }
-	  else
-	    {
-	      cas_log_msg = "COMMUNICATION ERROR net_read_header()";
-	    }
-	  cas_log_write_and_end (0, true, cas_log_msg);
-	  return fn_ret;
-	}
-      else
-	{
-	  as_info->uts_status = UTS_STATUS_BUSY;
-
-	  if (need_database_reconnect ())
-	    {
-	      assert (as_info->fixed_shard_user == false);
-
-	      set_db_connection_info ();
-
-	      err_code = ux_database_connect (cas_db_name, cas_db_user, cas_db_passwd, NULL);
-	      if (err_code < 0)
-		{
-		  clear_db_connection_info ();
-		  net_write_error (sock_fd, req_info->client_version, req_info->driver_info, cas_msg_header.info_ptr,
-				   cas_info_size, err_info.err_indicator, err_info.err_number, err_info.err_string);
-		  return FN_CLOSE_CONN;
-		}
-
-	      cas_log_write_and_end (0, false, "connect db %s user %s", cas_db_name, cas_db_user);
-	    }
-	}
-    }
-  else
     {
 
       unset_hang_check_time ();

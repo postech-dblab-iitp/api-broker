@@ -29,6 +29,7 @@
 #include "cas_net_buf.h"
 #include "cas_handle.h"
 #include "cas_dbms_util.h"
+#include "s62.h"
 
 #define CAS_TYPE_SET(TYPE)		((TYPE) | CCI_CODE_SET)
 #define CAS_TYPE_MULTISET(TYPE)		((TYPE) | CCI_CODE_MULTISET)
@@ -142,5 +143,11 @@ extern int ux_lob_write (DB_VALUE * lob_dbval, int64_t offset, int size, char *d
 extern int ux_lob_read (DB_VALUE * lob_dbval, int64_t offset, int size, T_NET_BUF * net_buf);
 
 extern int get_tuple_count (T_SRV_HANDLE * srv_handle);
+
+/*****************************
+  for S62
+ *****************************/
+extern void release_meta_results (S62_METADATA *meta_res);
+extern void release_property_results (S62_PROPERTY *property_res);
 
 #endif /* _CAS_EXECUTE_H_ */

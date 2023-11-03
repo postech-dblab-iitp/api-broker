@@ -24,6 +24,8 @@
 #ifndef	_CAS_HANDLE_H_
 #define	_CAS_HANDLE_H_
 
+#include "s62.h"
+
 #ident "$Id$"
 
 #define SRV_HANDLE_QUERY_SEQ_NUM(SRV_HANDLE)    \
@@ -78,7 +80,7 @@ struct t_query_result
   void *column_info;
   int copied;
   int tuple_count;
-  int stmt_id;
+  S62_STATEMENT *stmt_id;
   int num_column;
   char stmt_type;
   char col_updatable;
@@ -92,7 +94,9 @@ struct t_srv_handle
   int id;
   void *session;		/* query : DB_SESSION* schema : schema info table pointer */
 #if defined (FOR_API_CAS)
+  S62_STATEMENT *stmt_id;
   int stmt_type;
+  T_QUERY_RESULT *q_result;
 #else
   T_PREPARE_CALL_INFO *prepare_call_info;
   T_QUERY_RESULT *q_result;

@@ -12041,25 +12041,17 @@ set_extended_cas_type (T_CCI_U_TYPE u_set_type, DB_TYPE db_type)
 }
 
 static short
-encode_ext_type_to_short (T_BROKER_VERSION client_version, unsigned char cas_type)
+encode_ext_type_to_short (unsigned char cas_type)
 {
   short ret_type;
-  if (DOES_CLIENT_UNDERSTAND_THE_PROTOCOL (client_version, PROTOCOL_V7))
-    {
-      unsigned char msb_byte, lsb_byte;
+  unsigned char msb_byte, lsb_byte;
 
-      msb_byte = cas_type & CCI_CODE_COLLECTION;
-      msb_byte |= CAS_TYPE_FIRST_BYTE_PROTOCOL_MASK;
+  msb_byte = cas_type & CCI_CODE_COLLECTION;
+  msb_byte |= CAS_TYPE_FIRST_BYTE_PROTOCOL_MASK;
 
-      lsb_byte = CCI_GET_COLLECTION_DOMAIN (cas_type);
+  lsb_byte = CCI_GET_COLLECTION_DOMAIN (cas_type);
 
-      ret_type = ((short) msb_byte << 8) | ((short) lsb_byte);
-    }
-  else
-    {
-      assert (cas_type < 0x80);
-      ret_type = (short) cas_type;
-    }
+  ret_type = ((short) msb_byte << 8) | ((short) lsb_byte);
 
   return ret_type;
 }
