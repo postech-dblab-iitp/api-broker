@@ -132,6 +132,7 @@ if(UNIX)
   list(APPEND CUB_CAS_SOURCES ${BROKER_DIR}/broker_error.c)
   list(APPEND CUB_CAS_SOURCES ${BROKER_DIR}/broker_process_size.c)
   list(APPEND CUB_CAS_SOURCES ${BROKER_DIR}/broker_recv_fd.c)
+  list(APPEND CUB_CAS_SOURCES ${BASE_DIR}/s62.c)
   list(APPEND CUB_CAS_SOURCES ${BASE_DIR}/environment_variable.c)
   list(APPEND CUB_CAS_SOURCES ${BASE_DIR}/porting.c)
   SET_SOURCE_FILES_PROPERTIES(

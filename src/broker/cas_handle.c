@@ -158,6 +158,9 @@ hm_srv_handle_free (int h_id)
   FREE_MEM (srv_handle->classes);
   FREE_MEM (srv_handle->classes_chn);
 
+  s62_close_statement (srv_handle->stmt_id);
+  srv_handle->stmt_id = NULL;
+
   FREE_MEM (srv_handle);
   srv_handle_table[h_id - 1] = NULL;
   current_handle_count--;
@@ -186,6 +189,10 @@ hm_srv_handle_free_all (bool free_holdable)
 
       srv_handle_content_free (srv_handle);
       srv_handle_rm_tmp_file (i + 1, srv_handle);
+
+      s62_close_statement (srv_handle->stmt_id);
+      srv_handle->stmt_id = NULL;
+
       FREE_MEM (srv_handle);
       srv_handle_table[i] = NULL;
       current_handle_count--;
@@ -361,6 +368,7 @@ static void
 srv_handle_content_free (T_SRV_HANDLE * srv_handle)
 {
 cas_log_write (0, true, "--srv_handle_content_free [%d]", srv_handle->schema_type);
+
   FREE_MEM (srv_handle->sql_stmt);
 //  ux_prepare_call_info_free (srv_handle->prepare_call_info);
 
@@ -371,13 +379,13 @@ cas_log_write (0, true, "--srv_handle_content_free [%d]", srv_handle->schema_typ
     }
   else if (srv_handle->schema_type == CCI_SCH_CLASS || srv_handle->schema_type == CCI_SCH_VCLASS)
     {
-      release_meta_results ((S62_METADATA *) srv_handle->session);
+      s62_close_metadata ((S62_METADATA *) srv_handle->session);
       srv_handle->session = NULL;
       srv_handle->cur_result = NULL;
     }
   else if (srv_handle->schema_type == CCI_SCH_ATTRIBUTE)
     {
-      release_property_results ((S62_PROPERTY *) srv_handle->session);
+      s62_close_property ((S62_PROPERTY *) srv_handle->session);
       srv_handle->session = NULL;
       srv_handle->cur_result = NULL;
     }

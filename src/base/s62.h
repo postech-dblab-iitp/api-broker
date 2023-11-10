@@ -27,6 +27,17 @@ typedef struct s62_statement {
  S62_PROPERTY *property;
 } S62_STATEMENT;
 
+typedef struct s62_resultset {
+ S62_STATEMENT *stmt;
+ int position;
+ int num_row;
+ void *data;
+} S62_RESULTSET;
+
+typedef struct dummy_data {
+ char data[3][100];
+} DUMMY_DATA; 
+
 typedef enum {
     DB_TYPE_FIRST = 0,          /* first for iteration */
     DB_TYPE_UNKNOWN = 0,
@@ -146,4 +157,39 @@ typedef enum {
   S62_MAX_STMT_TYPE
   } S62_STMT_TYPE; 
 
+// connection
+extern int s62_connect (char *dbname);
+extern void s62_disconnect ();
+extern int s62_is_connected ();
+extern char *s62_get_version ();
+
+// error
+extern int s62_get_lasterror (char *errmsg);
+
+// schema
+extern int s62_get_metadata_from_catalog (char *labelname, int like_flag, int filter_flag, S62_METADATA **metadata);
+extern void s62_close_metadata (S62_METADATA *metadata);
+extern int s62_get_property_from_catalog (char *labelname, int type, S62_PROPERTY **property);
+extern void s62_close_property (S62_PROPERTY *property);
+
+// query
+extern S62_STATEMENT *s62_prepare (char *query);
+extern char *s62_getplan (S62_STATEMENT *statement);
+extern int s62_get_property_from_statement (S62_STATEMENT *statement, S62_PROPERTY **property);
+extern int s62_execute (S62_STATEMENT *statement, S62_RESULTSET **resultset);
+extern int s62_fetch_next (S62_RESULTSET *resultset);
+extern int s62_get_property_count (S62_RESULTSET *resultset);
+extern int s62_get_property_type (S62_RESULTSET *resultset, int idx);
+extern void s62_close_resultset (S62_RESULTSET *resultset);
+extern void s62_close_statement (S62_STATEMENT *statement);
+
+// put
+extern void s62_bind_string (S62_STATEMENT *statement, int idx, char *value);
+extern void s62_bind_short (S62_STATEMENT *statment, int idx, short value);
+extern void s62_bind_int (S62_STATEMENT *statment, int idx, int value);
+
+// get
+extern char *s62_get_string (S62_RESULTSET *resultset, int idx);
+extern short s62_get_short (S62_RESULTSET *resultset, int idx);
+extern int s62_get_int (S62_RESULTSET *resultset, int idx);
 #endif

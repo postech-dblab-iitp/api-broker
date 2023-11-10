@@ -144,10 +144,4 @@ extern int ux_lob_read (DB_VALUE * lob_dbval, int64_t offset, int size, T_NET_BU
 
 extern int get_tuple_count (T_SRV_HANDLE * srv_handle);
 
-/*****************************
-  for S62
- *****************************/
-extern void release_meta_results (S62_METADATA *meta_res);
-extern void release_property_results (S62_PROPERTY *property_res);
-
 #endif /* _CAS_EXECUTE_H_ */
