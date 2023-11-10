@@ -251,7 +251,6 @@ static int ux_get_generated_keys_client_insert (T_SRV_HANDLE * srv_handle, T_NET
 static bool do_commit_after_execute (const t_srv_handle & server_handle);
 static int recompile_statement (T_SRV_HANDLE * srv_handle);
 
-static S62_PROPERTY *add_property (S62_PROPERTY *property_res, char *lable_name, int label_type, char *property_name, int order, int type, int sqltype, int precision, int scale);
 static int bind_from_netval (S62_STATEMENT *stmt_id, int idx, void *net_type, void *net_value, T_NET_BUF * net_buf, char desired_type);
 static int value_to_netbuf (S62_RESULTSET *resultset, T_NET_BUF * net_buf, int idx, int max_col_size, char column_type_flag);
 
