@@ -35,7 +35,7 @@ typedef struct s62_resultset {
 } S62_RESULTSET;
 
 typedef struct dummy_data {
- char data[3][100];
+ char data[10][50];
 } DUMMY_DATA; 
 
 typedef enum {

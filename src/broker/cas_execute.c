@@ -1743,7 +1743,7 @@ unsigned char type;
      net_buf_cp_str (net_buf, ptr->property_name, (int) strlen (ptr->property_name) + 1);
      // 6. class name
      net_buf_cp_int (net_buf, (int) strlen (ptr->label_name) + 1, NULL);
-     net_buf_cp_str (net_buf, ptr->property_name, (int) strlen (ptr->label_name) + 1);
+     net_buf_cp_str (net_buf, ptr->label_name, (int) strlen (ptr->label_name) + 1);
      // 7. is not null
      net_buf_cp_byte (net_buf, 0);
      // 8. default value

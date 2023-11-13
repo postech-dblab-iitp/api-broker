@@ -90,7 +90,7 @@ int err_code = -1;
 // schema
 static S62_METADATA *add_meta (S62_METADATA *meta_res, char *label_name, int label_type)
 {
-S62_METADATA *ptr;
+S62_METADATA *ptr, *tmp;
 
  ptr = (S62_METADATA *) malloc (sizeof(S62_METADATA));
  if (ptr == NULL)
@@ -103,12 +103,17 @@ S62_METADATA *ptr;
  ptr->label_name = strdup(label_name);
  ptr->type = label_type;
 
- if (meta_res != NULL)
+ if (meta_res != NULL) 
    {
-     ptr->next = meta_res;
-   }
+      for (tmp = meta_res; tmp->next != NULL; tmp= tmp->next);
+      tmp->next = ptr;
 
- return ptr;
+      return meta_res;
+   }
+ else 
+   {
+      return ptr;
+   }
 }
 
 static void release_meta_results (S62_METADATA *meta_res)
@@ -130,7 +135,7 @@ S62_METADATA *ptr, *tmp;
 
 static S62_PROPERTY *add_property (S62_PROPERTY *property_res, char *lable_name, int label_type, char *property_name, int order, int type, int sqltype, int precision, int scale)
 {
-S62_PROPERTY *ptr;
+S62_PROPERTY *ptr, *tmp;
 
  ptr = (S62_PROPERTY *) malloc(sizeof(S62_PROPERTY));
  if (ptr == NULL)
@@ -151,10 +156,15 @@ S62_PROPERTY *ptr;
 
  if (property_res != NULL)
    {
-     ptr->next = property_res;
-   }
+     for (tmp = property_res; tmp->next != NULL; tmp = tmp->next);
+     tmp->next = ptr;
 
- return ptr;
+     return property_res;
+   }
+ else
+   {
+     return ptr;
+   }
 }
 
 static void release_property_results (S62_PROPERTY *property_res)
@@ -181,10 +191,13 @@ S62_METADATA *meta_res;
 int num_results = 0;
 
  meta_res = (S62_METADATA *) NULL;
- meta_res = add_meta (meta_res, (char *)"node_sample", 1);
+ meta_res = add_meta (meta_res, (char *)"person", 1);
  if (meta_res != NULL) num_results++;
 
- meta_res = add_meta (meta_res, (char *)"edge_sample", 2);
+ meta_res = add_meta (meta_res, (char *)"movie", 1);
+ if (meta_res != NULL) num_results++;
+
+ meta_res = add_meta (meta_res, (char *)"acted_in", 2);
  if (meta_res != NULL) num_results++;
 
  *metadata = meta_res;
@@ -204,18 +217,33 @@ int num_results = 0;
 
  property_res = (S62_PROPERTY *) NULL;
 
- if (strcmp(labelname, "node_sample") == 0)
+ if (strcmp(labelname, "person") == 0)
    {
-     property_res = add_property(property_res, labelname, 1, (char *)"node_property1", 1, DB_TYPE_STRING, DB_TYPE_STRING, 20, 0);
+     property_res = add_property(property_res, labelname, 1, (char *)"_id", 1, DB_TYPE_STRING, DB_TYPE_STRING, 10, 0);
      if (property_res != NULL) num_results++;
-     property_res = add_property(property_res, labelname, 1, (char *)"node_property2", 2, DB_TYPE_INTEGER, DB_TYPE_INTEGER, 8, 0);
+     property_res = add_property(property_res, labelname, 1, (char *)"born", 2, DB_TYPE_STRING, DB_TYPE_STRING, 50, 0);
+     if (property_res != NULL) num_results++;
+     property_res = add_property(property_res, labelname, 1, (char *)"name", 3, DB_TYPE_STRING, DB_TYPE_STRING, 50, 0);
      if (property_res != NULL) num_results++;
    }
- else if (strcmp(labelname, "edge_sample") == 0)
+ else if (strcmp(labelname, "movie") == 0)
    {
-     property_res = add_property(property_res, labelname, 2, (char *)"edge_property1", 1, DB_TYPE_STRING, DB_TYPE_STRING, 20, 0);
+     property_res = add_property(property_res, labelname, 2, (char *)"_id", 1, DB_TYPE_STRING, DB_TYPE_STRING, 10, 0);
      if (property_res != NULL) num_results++;
-     property_res = add_property(property_res, labelname, 2, (char *)"edge_property2", 2, DB_TYPE_INTEGER, DB_TYPE_INTEGER, 8, 0);
+     property_res = add_property(property_res, labelname, 2, (char *)"title", 2, DB_TYPE_STRING, DB_TYPE_STRING, 50, 0);
+     if (property_res != NULL) num_results++;
+     property_res = add_property(property_res, labelname, 2, (char *)"released", 3, DB_TYPE_STRING, DB_TYPE_STRING, 50, 0);
+     if (property_res != NULL) num_results++;
+   }
+ else if (strcmp(labelname, "acted_in") == 0)
+   {
+     property_res = add_property(property_res, labelname, 2, (char *)"_id", 1, DB_TYPE_STRING, DB_TYPE_STRING, 10, 0);
+     if (property_res != NULL) num_results++;
+     property_res = add_property(property_res, labelname, 2, (char *)"_startid", 2, DB_TYPE_STRING, DB_TYPE_STRING, 10, 0);
+     if (property_res != NULL) num_results++;
+     property_res = add_property(property_res, labelname, 2, (char *)"_endid", 3, DB_TYPE_STRING, DB_TYPE_STRING, 10, 0);
+     if (property_res != NULL) num_results++;
+     property_res = add_property(property_res, labelname, 2, (char *)"roles", 4, DB_TYPE_STRING, DB_TYPE_STRING, 50, 0);
      if (property_res != NULL) num_results++;
    }
 
@@ -242,12 +270,27 @@ S62_STATEMENT *stmt = (S62_STATEMENT *) NULL;
        stmt->query = strdup(query);
        stmt->query_type = S62_STMT_MATCH;
        stmt->plan = NULL;
+       stmt->num_property = 0;
 
-       stmt->property = add_property(stmt->property, (char *)"node_sample", 1, (char *)"node_property", 1, DB_TYPE_STRING, DB_TYPE_STRING, 20, 0);
+       stmt->property = add_property(stmt->property, (char *)"movie", 1, (char *)"_id", stmt->num_property, DB_TYPE_STRING, DB_TYPE_STRING, 10, 0);
        if (stmt->property != NULL) stmt->num_property++;
-       stmt->property = add_property(stmt->property, (char *)"edge_sample", 2, (char *)"edge_property", 2, DB_TYPE_STRING, DB_TYPE_STRING, 20, 0);
+       stmt->property = add_property(stmt->property, (char *)"movie", 1, (char *)"title", stmt->num_property, DB_TYPE_STRING, DB_TYPE_STRING, 50, 0);
        if (stmt->property != NULL) stmt->num_property++;
-       stmt->property = add_property(stmt->property, (char *)"", 0, (char *)"node+edge", 3, DB_TYPE_STRING, DB_TYPE_STRING, 40, 0);
+       stmt->property = add_property(stmt->property, (char *)"movie", 1, (char *)"released", stmt->num_property, DB_TYPE_STRING, DB_TYPE_STRING, 50, 0);
+       if (stmt->property != NULL) stmt->num_property++;
+       stmt->property = add_property(stmt->property, (char *)"acted_in", 2, (char *)"_id", stmt->num_property, DB_TYPE_STRING, DB_TYPE_STRING, 10, 0);
+       if (stmt->property != NULL) stmt->num_property++;
+       stmt->property = add_property(stmt->property, (char *)"acted_in", 2, (char *)"_startid", stmt->num_property, DB_TYPE_STRING, DB_TYPE_STRING, 10, 0);
+       if (stmt->property != NULL) stmt->num_property++;
+       stmt->property = add_property(stmt->property, (char *)"acted_in", 2, (char *)"_endid", stmt->num_property, DB_TYPE_STRING, DB_TYPE_STRING, 10, 0);
+       if (stmt->property != NULL) stmt->num_property++;
+       stmt->property = add_property(stmt->property, (char *)"acted_in", 2, (char *)"roles", stmt->num_property, DB_TYPE_STRING, DB_TYPE_STRING, 50, 0);
+       if (stmt->property != NULL) stmt->num_property++;
+       stmt->property = add_property(stmt->property, (char *)"person", 1, (char *)"_id", stmt->num_property, DB_TYPE_STRING, DB_TYPE_STRING, 10, 0);
+       if (stmt->property != NULL) stmt->num_property++;
+       stmt->property = add_property(stmt->property, (char *)"person", 1, (char *)"born", stmt->num_property, DB_TYPE_STRING, DB_TYPE_STRING, 50, 0);
+       if (stmt->property != NULL) stmt->num_property++;
+       stmt->property = add_property(stmt->property, (char *)"person", 1, (char *)"name", stmt->num_property, DB_TYPE_STRING, DB_TYPE_STRING, 50, 0);
        if (stmt->property != NULL) stmt->num_property++;
     }
 
@@ -296,7 +339,7 @@ DUMMY_DATA *ptr;
    }
  result->stmt = statement;
  result->position = 0;
- result->num_row = 2;
+ result->num_row = 1;
  ptr = (DUMMY_DATA *) malloc (sizeof(DUMMY_DATA) * result->num_row);
  if (result->data == NULL)
    {
@@ -304,15 +347,24 @@ DUMMY_DATA *ptr;
      result = NULL; 
      return (-2);
    }
+ memset (ptr, 0x00, sizeof(DUMMY_DATA) * result->num_row);
  result->data = (void *)ptr;
 
  for (i = 0; i < result->num_row; i++)
    {
-     for (j = 0; j < 3; j++)
-       {
-	 memset (ptr->data[j], 0x00, sizeof(100));
-     	 sprintf (ptr->data[j], "%d-th data-%d", i, j);
-       }
+     // movie : _id, title
+     strcpy(ptr->data[0], "87");
+     strcpy(ptr->data[1], "The Replacements");
+     strcpy(ptr->data[2], "2000");
+     // acted_in : _id, _startid, _endid, roles
+     strcpy(ptr->data[3], "114");
+     strcpy(ptr->data[4], "1");
+     strcpy(ptr->data[5], "87");
+     strcpy(ptr->data[6], "Shane Falco");
+     // person : _id, born
+     strcpy(ptr->data[7], "1");
+     strcpy(ptr->data[8], "1964");
+     strcpy(ptr->data[9], "Keanu Reeves");
      ptr++;
    }
 
@@ -438,8 +490,7 @@ char *s62_get_string (S62_RESULTSET *resultset, int idx)
  static char data[100];
 
  if (resultset == NULL 
-     || resultset->position <= 0 || resultset->position > resultset->num_row
-     || idx < 0 || idx > 2)
+     || resultset->position <= 0 || resultset->position > resultset->num_row)
    {
       return NULL;
    }
