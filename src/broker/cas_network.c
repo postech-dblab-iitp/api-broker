@@ -550,9 +550,9 @@ read_buffer (SOCKET sock_fd, char *buf, int size)
     }
 
 retry_poll:
-    {
-      n = poll (po, po_size, timeout);
-    }
+  {
+    n = poll (po, po_size, timeout);
+  }
   if (n < 0)
     {
       if (errno == EINTR)

@@ -764,7 +764,7 @@ retry:
  */
 int
 util_bsearch (const void *key, const void *base, int n_elems, unsigned int sizeof_elem,
-	      int (*func_compare) (const void *, const void *), bool * out_found)
+	      int (*func_compare) (const void *, const void *), bool *out_found)
 {
   int min = 0;
   int max = n_elems - 1;

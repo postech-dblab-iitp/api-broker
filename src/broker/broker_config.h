@@ -307,7 +307,7 @@ struct t_broker_info
 };
 
 extern int broker_config_read (const char *conf_file, T_BROKER_INFO * br_info, int *num_broker, int *br_shm_id,
-			       char *admin_log_file, char admin_flag, bool * acl_flag, char *acl_file,
+			       char *admin_log_file, char admin_flag, bool *acl_flag, char *acl_file,
 			       char *admin_err_msg);
 extern void broker_config_dump (FILE * fp, const T_BROKER_INFO * br_info, int num_broker, int br_shm_id);
 

@@ -533,7 +533,7 @@ fn_execute_internal (SOCKET sock_fd, int argc, void **argv, T_NET_BUF * net_buf,
   srv_handle->auto_commit_mode = auto_commit_mode;
   srv_handle->forward_only_cursor = forward_only_cursor;
 
-  if (srv_handle->prepare_flag & CCI_PREPARE_CALL || flag & CCI_EXEC_QUERY_ALL)
+  if (srv_handle->prepare_flag & CCI_PREPARE_CALL)	// || flag & CCI_EXEC_QUERY_ALL)
     {
       ERROR_INFO_SET (CAS_ER_INTERNAL, CAS_ERROR_INDICATOR);
       cas_log_write (SRV_HANDLE_QUERY_SEQ_NUM (srv_handle), false, "can't support execute mode");
@@ -603,7 +603,7 @@ fn_execute_internal (SOCKET sock_fd, int argc, void **argv, T_NET_BUF * net_buf,
 
   if (fetch_flag && ret_code >= 0 && client_cache_reusable == FALSE)
     {
-       ux_fetch (srv_handle, 1, 50, 0, 0, net_buf, req_info);
+      ux_fetch (srv_handle, 1, 50, 0, 0, net_buf, req_info);
     }
 
   cas_log_write (SRV_HANDLE_QUERY_SEQ_NUM (srv_handle), false, "%s %s%d tuple %d time %d.%03d%s%s%s", exec_func_name,
@@ -1122,7 +1122,7 @@ bind_value_print (char type, void *net_value, bool slow_log)
 	if (val_size > 0)
 	  {
 #if defined (FOR_API_CAS)
-	    num_chars = strlen(str_val);
+	    num_chars = strlen (str_val);
 #else
 	    num_chars = intl_char_count ((const unsigned char *) str_val, val_size, charset, &num_chars) - 1;
 #endif

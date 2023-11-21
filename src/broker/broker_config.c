@@ -114,8 +114,8 @@ static void conf_file_has_been_loaded (const char *conf_path);
 static int check_port_number (T_BROKER_INFO * br_info, int num_brs);
 static int get_conf_value (const char *string, T_CONF_TABLE * conf_table);
 static const char *get_conf_string (int value, T_CONF_TABLE * conf_table);
-static void read_conf_cache (int cid, bool * acl, int *num_br, int *shm_id, char *log_file, T_BROKER_INFO * br_info);
-static void write_conf_cache (char *file, bool * acl_flag, int *num_broker, int *shm_id, char *alog,
+static void read_conf_cache (int cid, bool *acl, int *num_br, int *shm_id, char *log_file, T_BROKER_INFO * br_info);
+static void write_conf_cache (char *file, bool *acl_flag, int *num_broker, int *shm_id, char *alog,
 			      T_BROKER_INFO * br_info, time_t bf_mtime);
 static void clear_conf_cache_entry (int cid);
 
@@ -420,8 +420,7 @@ get_conf_string (int value, T_CONF_TABLE * conf_table)
  */
 static int
 broker_config_read_internal (const char *conf_file, T_BROKER_INFO * br_info, int *num_broker, int *br_shm_id,
-			     char *admin_log_file, char admin_flag, bool * acl_flag, char *acl_file,
-			     char *admin_err_msg)
+			     char *admin_log_file, char admin_flag, bool *acl_flag, char *acl_file, char *admin_err_msg)
 {
 #if defined (_UC_ADMIN_SO_)
 #define PRINTERROR(...)	sprintf(admin_err_msg, __VA_ARGS__)
@@ -1301,7 +1300,7 @@ conf_error:
 }
 
 static void
-write_conf_cache (char *broker_conf_file, bool * acl_flag, int *num_broker, int *br_shm_id, char *admin_logfile,
+write_conf_cache (char *broker_conf_file, bool *acl_flag, int *num_broker, int *br_shm_id, char *admin_logfile,
 		  T_BROKER_INFO * br_info, time_t br_conf_mtime)
 {
   if (broker_conf_file == NULL || num_broker == NULL || br_info == NULL || br_shm_id == NULL)
@@ -1335,7 +1334,7 @@ write_conf_cache (char *broker_conf_file, bool * acl_flag, int *num_broker, int 
 }
 
 static void
-read_conf_cache (int cid, bool * acl_flag, int *num_broker, int *br_shm_id, char *logfile, T_BROKER_INFO * br_info)
+read_conf_cache (int cid, bool *acl_flag, int *num_broker, int *br_shm_id, char *logfile, T_BROKER_INFO * br_info)
 {
   if (cid < 0 || cid >= MAX_NUM_CACHED_BROKER_FILES || br_shm_id == NULL || br_info == NULL)
     {
@@ -1394,7 +1393,7 @@ clear_conf_cache_entry (int cid)
  */
 int
 broker_config_read (const char *conf_file, T_BROKER_INFO * br_info, int *num_broker, int *br_shm_id,
-		    char *admin_log_file, char admin_flag, bool * acl_flag, char *acl_file, char *admin_err_msg)
+		    char *admin_log_file, char admin_flag, bool *acl_flag, char *acl_file, char *admin_err_msg)
 {
   int err = 0;
   char file_name[BROKER_PATH_MAX], file_being_dealt_with[BROKER_PATH_MAX];

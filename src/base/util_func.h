@@ -72,7 +72,7 @@ extern int util_log_write_warnstr (const char *format, ...);
 extern int util_log_write_command (int argc, char *argv[]);
 
 extern int util_bsearch (const void *key, const void *base, int n_elems, unsigned int sizeof_elem,
-			 int (*func_compare) (const void *, const void *), bool * out_found);
+			 int (*func_compare) (const void *, const void *), bool *out_found);
 
 extern void util_get_second_and_ms_since_epoch (time_t * secs, int *msec);
 

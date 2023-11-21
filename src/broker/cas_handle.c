@@ -296,7 +296,7 @@ hm_qresult_end (T_SRV_HANDLE * srv_handle, char free_flag)
   T_QUERY_RESULT *q_result;
   int i;
 
- cas_log_write (0, true,  "--hm_qresult_end");
+  cas_log_write (0, true, "--hm_qresult_end");
 
   q_result = srv_handle->q_result;
   if (q_result)
@@ -317,8 +317,8 @@ hm_qresult_end (T_SRV_HANDLE * srv_handle, char free_flag)
 
 	  if (q_result[i].column_info)
 	    {
-//	      neet to clear column_info
-//	      db_query_format_free ((DB_QUERY_TYPE *) q_result[i].column_info);
+//            neet to clear column_info
+//            db_query_format_free ((DB_QUERY_TYPE *) q_result[i].column_info);
 	    }
 
 	  q_result[i].column_info = NULL;
@@ -367,12 +367,12 @@ hm_col_update_info_clear (T_COL_UPDATE_INFO * col_update_info)
 static void
 srv_handle_content_free (T_SRV_HANDLE * srv_handle)
 {
-cas_log_write (0, true, "--srv_handle_content_free [%d]", srv_handle->schema_type);
+  cas_log_write (0, true, "--srv_handle_content_free [%d]", srv_handle->schema_type);
 
   FREE_MEM (srv_handle->sql_stmt);
 //  ux_prepare_call_info_free (srv_handle->prepare_call_info);
 
-  if (srv_handle->schema_type < 0) 
+  if (srv_handle->schema_type < 0)
     {
       hm_qresult_end (srv_handle, TRUE);
       hm_session_free (srv_handle);

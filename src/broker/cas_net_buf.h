@@ -128,7 +128,7 @@ extern void net_buf_column_info_set (T_NET_BUF * net_buf, char ut, short scale, 
 				     const char *name);
 
 extern void net_arg_get_size (int *size, void *arg);
-extern void net_arg_get_bigint (DB_BIGINT* value, void *arg);
+extern void net_arg_get_bigint (DB_BIGINT * value, void *arg);
 extern void net_arg_get_int (int *value, void *arg);
 extern void net_arg_get_short (short *value, void *arg);
 extern void net_arg_get_float (float *value, void *arg);

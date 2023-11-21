@@ -74,7 +74,7 @@ cfg_get_dbinfo (char *alias, char *dbinfo)
 
   if (shm_appl->db_connection_file[0] == '\0')
     {
-  	return ERROR_INFO_SET (CAS_ER_ARGS, CAS_ERROR_INDICATOR);
+      return ERROR_INFO_SET (CAS_ER_ARGS, CAS_ERROR_INDICATOR);
     }
   else
     {
@@ -133,7 +133,7 @@ cfg_read_dbinfo (DB_INFO ** db_info_p)
 
   if (shm_appl->db_connection_file[0] == '\0')
     {
-  	return ERROR_INFO_SET (CAS_ER_ARGS, CAS_ERROR_INDICATOR);
+      return ERROR_INFO_SET (CAS_ER_ARGS, CAS_ERROR_INDICATOR);
     }
   else
     {
@@ -181,15 +181,15 @@ cfg_read_dbinfo (DB_INFO ** db_info_p)
 	      last->next = db;
 	    }
 	  last = db;
-	    {
-	      if (databases != NULL)
-		{
-		  cfg_free_dbinfo_all (databases);
-		}
-	      *db_info_p = NULL;
-	      fclose (file);
-	      return ERROR_INFO_SET (CAS_ER_ARGS, CAS_ERROR_INDICATOR);
-	    }
+	  {
+	    if (databases != NULL)
+	      {
+		cfg_free_dbinfo_all (databases);
+	      }
+	    *db_info_p = NULL;
+	    fclose (file);
+	    return ERROR_INFO_SET (CAS_ER_ARGS, CAS_ERROR_INDICATOR);
+	  }
 	}
     }
   fclose (file);

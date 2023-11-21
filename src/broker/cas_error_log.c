@@ -201,7 +201,7 @@ cas_error_log_get_eid (char *buf, size_t bufsz)
 
   if (bufsz < 32)
     {
-      buf_p = (char *)malloc (32);
+      buf_p = (char *) malloc (32);
 
       if (buf_p == NULL)
 	{

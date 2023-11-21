@@ -278,7 +278,7 @@ extern "C"
   extern int intl_mbs_upper (const char *mbs1, char *mbs2);
 #endif
   extern char *intl_mbs_chr (const char *mbs, wchar_t the_char);
-  extern int intl_mbs_spn (const char *mbs, const wchar_t * chars);
+  extern int intl_mbs_spn (const char *mbs, const wchar_t *chars);
   extern int intl_mbs_len (const char *mbs);
 
   extern const char *intl_mbs_nth (const char *mbs, size_t n);
