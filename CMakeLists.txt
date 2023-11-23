@@ -388,6 +388,8 @@ endif(CMAKE_BUILD_TYPE MATCHES "Profile")
 # source directories
 set(BASE_DIR                 ${CMAKE_SOURCE_DIR}/src/base)
 set(BROKER_DIR               ${CMAKE_SOURCE_DIR}/src/broker)
+set(S62_DIR                  ${CMAKE_SOURCE_DIR}/src/s62)
+set(S62_LIB_DIR		     /turbograph-v3/turbograph-v3/build/tbgpp-api-server)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(

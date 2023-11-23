@@ -24,7 +24,7 @@
 #ifndef	_CAS_HANDLE_H_
 #define	_CAS_HANDLE_H_
 
-#include "s62.h"
+#include "s62ext.h"
 
 #ident "$Id$"
 

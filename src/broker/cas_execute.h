@@ -29,7 +29,7 @@
 #include "cas_net_buf.h"
 #include "cas_handle.h"
 #include "cas_dbms_util.h"
-#include "s62.h"
+#include "s62ext.h"
 
 #define CAS_TYPE_SET(TYPE)		((TYPE) | CCI_CODE_SET)
 #define CAS_TYPE_MULTISET(TYPE)		((TYPE) | CCI_CODE_MULTISET)

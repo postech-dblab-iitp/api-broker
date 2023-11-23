@@ -41,7 +41,7 @@
 #include "cas_common.h"
 #include "cas_handle.h"
 #include "cas_log.h"
-#include "s62.h"
+#include "s62ext.h"
 
 #define SRV_HANDLE_ALLOC_SIZE		256
 
