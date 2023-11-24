@@ -401,7 +401,7 @@ ux_database_connect (char *db_name, char *db_user, char *db_passwd, char **db_er
 	  ux_database_shutdown ();
 	}
 
-      if ((err_code = s62_get_workspace (db_name, (char **)&workspace)) < 0)
+      if ((err_code = s62_get_workspace (db_name, (char *)workspace)) < 0)
 	{
 	  cas_log_write (0, true, "can't get workspace with %s [%d]", db_name, err_code);;
 	  return ERROR_INFO_SET (-2, CAS_ERROR_INDICATOR);
@@ -409,6 +409,7 @@ ux_database_connect (char *db_name, char *db_user, char *db_passwd, char **db_er
 
       if ((err_code = s62_connect (workspace)) < 0)
 	{
+	  cas_log_write (0, true, "can't connect db with %s [%d]", workspace, s62_get_last_error(NULL));;
 	  goto connect_error;
 	}
 
@@ -1625,6 +1626,12 @@ get_num_markers (char *stmt, char **return_stmt)
 	}
     }
 
+  if (num_markers > 99)
+    {
+       *return_stmt = NULL;
+       return num_markers;
+    }
+
   *return_stmt = (char *) malloc (strlen(stmt) + (num_markers*3) + 1);
   if (*return_stmt != NULL)
     {
@@ -1636,21 +1643,22 @@ get_num_markers (char *stmt, char **return_stmt)
          {
             char *dest = *return_stmt;
 	    char *src = stmt;
-	    char var[3];
+	    char var[5];
 	    
-            for (int i = 0; *src != '\0' && i < num_markers; dest++, src++)
+            for (int i = 1; *src != '\0'; dest++, src++)
 	      {
 		 if (*src == '?')
 	           {
-		      sprintf(var, "%03d", i);
-		      memcpy(dest, var, 3);
-		      dest += 3;
+		      sprintf(var, "$v%02d", i);
+		      memcpy(dest, var, strlen(var));
+		      dest = dest + strlen(var) - 1;
 	           }
 		 else
 	           {
 		      *dest = *src;
 	           }
               }
+	    *dest = '\0';
 	 }
     }
 

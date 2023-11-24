@@ -7,7 +7,7 @@
 #include "s62ext.h"
 
 // get workspace from databases.txt
-int s62_get_workspace (const char *dbname, char **workspace)
+int s62_get_workspace (const char *dbname, char *workspace)
 {
   const char *database;
   char filename[500];
@@ -42,7 +42,7 @@ int s62_get_workspace (const char *dbname, char **workspace)
 	ptr = strtok (NULL, " \t");
 	if (ptr == NULL) continue;
 
-	strcpy(*workspace, ptr);
+	strcpy(workspace, ptr);
 	is_find = true;
     }
 
@@ -50,11 +50,18 @@ int s62_get_workspace (const char *dbname, char **workspace)
 
   if (is_find) 
     {
+       for (ptr = workspace; *ptr != '\0'; ptr++)
+         {
+            if (*ptr == '\n' || *ptr == '\t' || *ptr == ' ')
+              {
+                 *ptr = '\0';
+              }
+         }
        return (0);
     }
   else
     {
-       return (-3); // can't find workspace with dbname
+       return (-3); // can't find workspace with dbname in databases.txt
     }
 }
 
