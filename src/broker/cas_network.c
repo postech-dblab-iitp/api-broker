@@ -268,7 +268,7 @@ net_connect_client (SOCKET srv_sock_fd)
 
   if (IS_INVALID_SOCKET (clt_sock_fd))
     {
-       return INVALID_SOCKET;
+      return INVALID_SOCKET;
     }
 
   net_error_flag = 0;

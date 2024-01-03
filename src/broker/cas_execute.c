@@ -402,20 +402,20 @@ ux_database_connect (char *db_name, char *db_user, char *db_passwd, char **db_er
 	  ux_database_shutdown ();
 	}
 
-      if ((err_code = s62_get_workspace (db_name, (char *)workspace)) < 0)
+      if ((err_code = s62_get_workspace (db_name, (char *) workspace)) < 0)
 	{
 	  cas_log_write (0, true, "can't get workspace with %s [%d]", db_name, err_code);;
 	  return ERROR_INFO_SET (-2, CAS_ERROR_INDICATOR);
 	}
 
-cas_log_write(0, true, "-- s62_connect (%s) -- before call\n", workspace);
+      cas_log_write (0, true, "-- s62_connect (%s) -- before call\n", workspace);
       if ((err_code = s62_connect (workspace)) < 0)
 	{
-          char *errstr;
-	  cas_log_write (0, true, "can't connect db with %s [%d]", workspace, s62_get_last_error(&errstr));;
+	  char *errstr;
+	  cas_log_write (0, true, "can't connect db with %s [%d]", workspace, s62_get_last_error (&errstr));;
 	  goto connect_error;
 	}
-cas_log_write(0, true, "-- s62_connect (%s) -- after call\n", workspace);
+      cas_log_write (0, true, "-- s62_connect (%s) -- after call\n", workspace);
 
       p = strchr (db_name, '@');
       if (p)
@@ -440,13 +440,13 @@ cas_log_write(0, true, "-- s62_connect (%s) -- after call\n", workspace);
 	   || strcmp (database_user, db_user) != 0 || strcmp (database_passwd, db_passwd) != 0)
     {
       // relogin without connecting
-      cas_log_write(0, true, "-- already be connected, but don't need to connect");
+      cas_log_write (0, true, "-- already be connected, but don't need to connect");
       strncpy (database_user, db_user, sizeof (database_user) - 1);
       strncpy (database_passwd, db_passwd, sizeof (database_passwd) - 1);
     }
   else
     {
-      cas_log_write(0, true, "-- already be connected, but don't need to connect");
+      cas_log_write (0, true, "-- already be connected, but don't need to connect");
       // already be connected, but we need to check whether connecting to tg++
     }
 
@@ -460,12 +460,12 @@ connect_error:
 int
 ux_is_database_connected (void)
 {
-int is_connected = 0;
+  int is_connected = 0;
 
   cas_log_write (0, true, "--ux_is_database_connected");
   if (s62_is_connected () == S62_CONNECTED)
     {
-       is_connected = 1;
+      is_connected = 1;
     }
 
   return (is_connected);
@@ -1112,16 +1112,16 @@ fetch_result (T_SRV_HANDLE * srv_handle, int cursor_pos, int fetch_count, char f
 
       ret_fetch = s62_fetch_next (result);
       if (ret_fetch == S62_ERROR_RESULT)
-        {
-          err_code = ERROR_INFO_SET (s62_get_last_error (&errstr), DBMS_ERROR_INDICATOR);
-          goto fetch_error;
-        } 
+	{
+	  err_code = ERROR_INFO_SET (s62_get_last_error (&errstr), DBMS_ERROR_INDICATOR);
+	  goto fetch_error;
+	}
       else if (ret_fetch == S62_END_OF_RESULT)
 	{
 	  fetch_end_flag = 1;
 	  ux_cursor_close (srv_handle);
 	  break;
-        }
+	}
 
       for (i = 0; i < num_properties; i++)
 	{
@@ -1232,7 +1232,7 @@ fetch_attribute (T_SRV_HANDLE * srv_handle, int cursor_pos, int fetch_count, cha
       add_res_data_string (net_buf, property_res->property_name, strlen (property_res->property_name), 0,
 			   CAS_SCHEMA_DEFAULT_CHARSET, NULL);
       // 2. DOMAIN (lable type)
-      type = set_extended_cas_type (CCI_U_TYPE_UNKNOWN, s62type_to_dbtype(property_res->property_type));
+      type = set_extended_cas_type (CCI_U_TYPE_UNKNOWN, s62type_to_dbtype (property_res->property_type));
       add_res_data_short (net_buf, encode_ext_type_to_short (type), 0, NULL);
       // 3. SCALE
       add_res_data_short (net_buf, (short) property_res->scale, 0, NULL);
@@ -1637,38 +1637,38 @@ get_num_markers (char *stmt, char **return_stmt)
 
   if (num_markers > 99)
     {
-       *return_stmt = NULL;
-       return num_markers;
+      *return_stmt = NULL;
+      return num_markers;
     }
 
-  *return_stmt = (char *) malloc (strlen(stmt) + (num_markers*3) + 1);
+  *return_stmt = (char *) malloc (strlen (stmt) + (num_markers * 3) + 1);
   if (*return_stmt != NULL)
     {
-       if (num_markers == 0)
-	 {
-           strcpy(*return_stmt, stmt);
-         }
-       else
-         {
-            char *dest = *return_stmt;
-	    char *src = stmt;
-	    char var[5];
-	    
-            for (int i = 1; *src != '\0'; dest++, src++)
-	      {
-		 if (*src == '?')
-	           {
-		      sprintf(var, "$v%02d", i);
-		      memcpy(dest, var, strlen(var));
-		      dest = dest + strlen(var) - 1;
-	           }
-		 else
-	           {
-		      *dest = *src;
-	           }
-              }
-	    *dest = '\0';
-	 }
+      if (num_markers == 0)
+	{
+	  strcpy (*return_stmt, stmt);
+	}
+      else
+	{
+	  char *dest = *return_stmt;
+	  char *src = stmt;
+	  char var[5];
+
+	  for (int i = 1; *src != '\0'; dest++, src++)
+	    {
+	      if (*src == '?')
+		{
+		  sprintf (var, "$v%02d", i);
+		  memcpy (dest, var, strlen (var));
+		  dest = dest + strlen (var) - 1;
+		}
+	      else
+		{
+		  *dest = *src;
+		}
+	    }
+	  *dest = '\0';
+	}
     }
 
   return num_markers;
@@ -1788,7 +1788,7 @@ prepare_column_list_info_set (char prepare_flag, T_QUERY_RESULT * q_result, T_NE
   for (ptr = property; ptr != NULL; ptr = ptr->next, i++)
     {
       // 1. data type
-      type = set_extended_cas_type (CCI_U_TYPE_UNKNOWN, s62type_to_dbtype(ptr->property_type));
+      type = set_extended_cas_type (CCI_U_TYPE_UNKNOWN, s62type_to_dbtype (ptr->property_type));
       net_buf_cp_cas_type_and_charset (net_buf, type, CAS_SCHEMA_DEFAULT_CHARSET);
       // 2. scale
       net_buf_cp_short (net_buf, ptr->scale);
@@ -1801,41 +1801,42 @@ prepare_column_list_info_set (char prepare_flag, T_QUERY_RESULT * q_result, T_NE
 	  net_buf_cp_str (net_buf, "_unknown", strlen ("_unknown") + 1);
 	  net_buf_cp_int (net_buf, (int) strlen ("_unknown") + 1, NULL);
 	  net_buf_cp_str (net_buf, "_unknown", strlen ("_unknown") + 1);
-        }
-      else
-	{
-      	   for (dot = ptr->property_name; *dot != '\0'; dot++)
-	     {
-	        if (*dot == '.') break;
-             }
-
-           if (*dot == '.')
-             {
-                dot = dot + 1;
-                net_buf_cp_int (net_buf, (int) strlen (dot) + 1, NULL);
-                net_buf_cp_str (net_buf, dot, (int) strlen (dot) + 1);
-                net_buf_cp_int (net_buf, (int) strlen (dot) + 1, NULL);
-                net_buf_cp_str (net_buf, dot, (int) strlen (dot) + 1);
-             }
-           else
-	     {
-                net_buf_cp_int (net_buf, (int) strlen (ptr->property_name) + 1, NULL);
-                net_buf_cp_str (net_buf, ptr->property_name, (int) strlen (ptr->property_name) + 1);
-                net_buf_cp_int (net_buf, (int) strlen (ptr->property_name) + 1, NULL);
-                net_buf_cp_str (net_buf, ptr->property_name, (int) strlen (ptr->property_name) + 1);
-             }
-        }
-      // 6. class name
-      if (ptr->label_type == S62_OTHER || strlen (ptr->label_name) <= 0) 
-        {
-      	   net_buf_cp_int (net_buf, (int) strlen ("_others"), NULL);
-      	   net_buf_cp_str (net_buf, "_others", (int) strlen ("_others"));
 	}
       else
 	{
-      	   net_buf_cp_int (net_buf, (int) strlen (ptr->label_name) + 1, NULL);
-      	   net_buf_cp_str (net_buf, ptr->label_name, (int) strlen (ptr->label_name) + 1);
-        }
+	  for (dot = ptr->property_name; *dot != '\0'; dot++)
+	    {
+	      if (*dot == '.')
+		break;
+	    }
+
+	  if (*dot == '.')
+	    {
+	      dot = dot + 1;
+	      net_buf_cp_int (net_buf, (int) strlen (dot) + 1, NULL);
+	      net_buf_cp_str (net_buf, dot, (int) strlen (dot) + 1);
+	      net_buf_cp_int (net_buf, (int) strlen (dot) + 1, NULL);
+	      net_buf_cp_str (net_buf, dot, (int) strlen (dot) + 1);
+	    }
+	  else
+	    {
+	      net_buf_cp_int (net_buf, (int) strlen (ptr->property_name) + 1, NULL);
+	      net_buf_cp_str (net_buf, ptr->property_name, (int) strlen (ptr->property_name) + 1);
+	      net_buf_cp_int (net_buf, (int) strlen (ptr->property_name) + 1, NULL);
+	      net_buf_cp_str (net_buf, ptr->property_name, (int) strlen (ptr->property_name) + 1);
+	    }
+	}
+      // 6. class name
+      if (ptr->label_type == S62_OTHER || strlen (ptr->label_name) <= 0)
+	{
+	  net_buf_cp_int (net_buf, (int) strlen ("_others"), NULL);
+	  net_buf_cp_str (net_buf, "_others", (int) strlen ("_others"));
+	}
+      else
+	{
+	  net_buf_cp_int (net_buf, (int) strlen (ptr->label_name) + 1, NULL);
+	  net_buf_cp_str (net_buf, ptr->label_name, (int) strlen (ptr->label_name) + 1);
+	}
       // 7. is not null
       net_buf_cp_byte (net_buf, 0);
       // 8. default value
@@ -1861,7 +1862,7 @@ prepare_column_list_info_set (char prepare_flag, T_QUERY_RESULT * q_result, T_NE
     {
       return 0;
     }
-  else 
+  else
     {
       return -1;
     }
@@ -1939,7 +1940,7 @@ bind_from_netval (S62_STATEMENT * stmt_id, int idx, void *net_type, void *net_va
 
 	val_size--;
 
-//	s62_bind_string (stmt_id, idx, value);
+//      s62_bind_string (stmt_id, idx, value);
       }
       break;
     case CCI_U_TYPE_NUMERIC:
@@ -1987,7 +1988,7 @@ bind_from_netval (S62_STATEMENT * stmt_id, int idx, void *net_type, void *net_va
 
 	net_arg_get_int (&i_val, net_value);
 
-//	s62_bind_int (stmt_id, idx, i_val);
+//      s62_bind_int (stmt_id, idx, i_val);
       }
       break;
     case CCI_U_TYPE_SHORT:
@@ -1996,7 +1997,7 @@ bind_from_netval (S62_STATEMENT * stmt_id, int idx, void *net_type, void *net_va
 
 	net_arg_get_short (&s_val, net_value);
 
-//	s62_bind_short (stmt_id, idx, s_val);
+//      s62_bind_short (stmt_id, idx, s_val);
       }
       break;
     case CCI_U_TYPE_FLOAT:
@@ -2088,7 +2089,7 @@ value_to_netbuf (S62_RESULTSET * resultset, T_NET_BUF * net_buf, int idx, int ma
 
   switch (column_type_flag)
     {
-    case S62_TYPE_VARCHAR :
+    case S62_TYPE_VARCHAR:
       {
 	s62_string str;
 	int bytes_size = 0;
@@ -2106,18 +2107,18 @@ value_to_netbuf (S62_RESULTSET * resultset, T_NET_BUF * net_buf, int idx, int ma
 	    bytes_size = MIN (bytes_size, max_col_size);
 	  }
 
-//	printf ("str.data : %s\n", str.data);
+//      printf ("str.data : %s\n", str.data);
 	add_res_data_string (net_buf, str.data, bytes_size, ext_col_type, CAS_SCHEMA_DEFAULT_CHARSET, &data_size);
       }
       break;
-    case S62_TYPE_SMALLINT :
+    case S62_TYPE_SMALLINT:
       {
 	int16_t smallint;
 	smallint = s62_get_int16 (resultset, idx);
 	add_res_data_short (net_buf, smallint, ext_col_type, &data_size);
       }
       break;
-    case S62_TYPE_USMALLINT :
+    case S62_TYPE_USMALLINT:
       {
 	uint16_t smallint;
 	smallint = s62_get_uint16 (resultset, idx);

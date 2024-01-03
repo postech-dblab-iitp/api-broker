@@ -8,13 +8,15 @@
 
 static char _s62_version[20] = { "11.3.0.0001" };
 
-s62_version s62_get_version_ex()
+s62_version
+s62_get_version_ex ()
 {
   return (_s62_version);
 }
 
 // get workspace from databases.txt
-int s62_get_workspace (const char *dbname, char *workspace)
+int
+s62_get_workspace (const char *dbname, char *workspace)
 {
   const char *database;
   char filename[500];
@@ -23,11 +25,11 @@ int s62_get_workspace (const char *dbname, char *workspace)
   FILE *fd;
   bool is_find = false;
 
-  database = envvar_get ((const char *)"DATABASES");
+  database = envvar_get ((const char *) "DATABASES");
 
-  if (database == NULL) 
+  if (database == NULL)
     {
-      return -1; // can't get enviornment
+      return -1;		// can't get enviornment
     }
 
   sprintf (filename, "%s/databases.txt", database);
@@ -35,40 +37,43 @@ int s62_get_workspace (const char *dbname, char *workspace)
   fd = fopen (filename, "r");
   if (fd == NULL)
     {
-      return -2; // can't open databases.txt
-    }
-  
-  while (!feof(fd))
-    {
-	fgets(buf, sizeof(buf), fd);
-	if (buf[0] == '#') continue; // check comment
-
-	ptr = strtok (buf, " \t");
-	if (ptr == NULL || strcmp (dbname, ptr) != 0) continue;
-
-	ptr = strtok (NULL, " \t");
-	if (ptr == NULL) continue;
-
-	strcpy(workspace, ptr);
-	is_find = true;
+      return -2;		// can't open databases.txt
     }
 
-  fclose(fd);
-
-  if (is_find) 
+  while (!feof (fd))
     {
-       for (ptr = workspace; *ptr != '\0'; ptr++)
-         {
-            if (*ptr == '\n' || *ptr == '\t' || *ptr == ' ')
-              {
-                 *ptr = '\0';
-              }
-         }
-       return (0);
+      fgets (buf, sizeof (buf), fd);
+      if (buf[0] == '#')
+	continue;		// check comment
+
+      ptr = strtok (buf, " \t");
+      if (ptr == NULL || strcmp (dbname, ptr) != 0)
+	continue;
+
+      ptr = strtok (NULL, " \t");
+      if (ptr == NULL)
+	continue;
+
+      strcpy (workspace, ptr);
+      is_find = true;
+    }
+
+  fclose (fd);
+
+  if (is_find)
+    {
+      for (ptr = workspace; *ptr != '\0'; ptr++)
+	{
+	  if (*ptr == '\n' || *ptr == '\t' || *ptr == ' ')
+	    {
+	      *ptr = '\0';
+	    }
+	}
+      return (0);
     }
   else
     {
-       return (-3); // can't find workspace with dbname in databases.txt
+      return (-3);		// can't find workspace with dbname in databases.txt
     }
 }
 
@@ -164,7 +169,7 @@ s62_close_statement (S62_STATEMENT * statement)
     free (statement->query);
   if (statement->plan != NULL)
     free (statement->plan);
-  s62_close_property(statement->property);
+  s62_close_property (statement->property);
 #endif
 
   free (statement);
@@ -172,95 +177,97 @@ s62_close_statement (S62_STATEMENT * statement)
   statement = NULL;
 }
 
-DB_TYPE s62type_to_dbtype (s62_type type)
+DB_TYPE
+s62type_to_dbtype (s62_type type)
 {
-   DB_TYPE db_type = DB_TYPE_UNKNOWN;
+  DB_TYPE db_type = DB_TYPE_UNKNOWN;
 
-   switch (type)
-     {
-	case S62_TYPE_SMALLINT :
-	case S62_TYPE_USMALLINT :
-	  db_type = DB_TYPE_SHORT;
-	  break;
-	case S62_TYPE_INTEGER :
-	case S62_TYPE_UINTEGER :
-	  db_type = DB_TYPE_INTEGER;
-	  break;
-	case S62_TYPE_BIGINT :
-	case S62_TYPE_UBIGINT :
-	case S62_TYPE_ID :
-	  db_type = DB_TYPE_BIGINT;
-	  break;
-	case S62_TYPE_FLOAT :
-	  db_type = DB_TYPE_FLOAT;
-	  break;
-	case S62_TYPE_DOUBLE :
-	  db_type = DB_TYPE_DOUBLE;
-	  break;
-	case S62_TYPE_DECIMAL :
-	  db_type = DB_TYPE_NUMERIC;
-	  break;
-	case S62_TYPE_VARCHAR :
-	  db_type = DB_TYPE_STRING;
-	  break;
-	case S62_TYPE_TIME :
-	  db_type = DB_TYPE_TIME;
-	  break;
-	case S62_TYPE_TIMESTAMP :
-	  db_type = DB_TYPE_TIMESTAMP;
-	  break;
-	case S62_TYPE_DATE :
-	  db_type = DB_TYPE_DATE;
-	  break;
-	default :
-	  db_type = DB_TYPE_UNKNOWN;
-	  break;
-     }
+  switch (type)
+    {
+    case S62_TYPE_SMALLINT:
+    case S62_TYPE_USMALLINT:
+      db_type = DB_TYPE_SHORT;
+      break;
+    case S62_TYPE_INTEGER:
+    case S62_TYPE_UINTEGER:
+      db_type = DB_TYPE_INTEGER;
+      break;
+    case S62_TYPE_BIGINT:
+    case S62_TYPE_UBIGINT:
+    case S62_TYPE_ID:
+      db_type = DB_TYPE_BIGINT;
+      break;
+    case S62_TYPE_FLOAT:
+      db_type = DB_TYPE_FLOAT;
+      break;
+    case S62_TYPE_DOUBLE:
+      db_type = DB_TYPE_DOUBLE;
+      break;
+    case S62_TYPE_DECIMAL:
+      db_type = DB_TYPE_NUMERIC;
+      break;
+    case S62_TYPE_VARCHAR:
+      db_type = DB_TYPE_STRING;
+      break;
+    case S62_TYPE_TIME:
+      db_type = DB_TYPE_TIME;
+      break;
+    case S62_TYPE_TIMESTAMP:
+      db_type = DB_TYPE_TIMESTAMP;
+      break;
+    case S62_TYPE_DATE:
+      db_type = DB_TYPE_DATE;
+      break;
+    default:
+      db_type = DB_TYPE_UNKNOWN;
+      break;
+    }
 
-   return (db_type);
+  return (db_type);
 }
 
-s62_type dbtype_to_s62type (DB_TYPE type)
+s62_type
+dbtype_to_s62type (DB_TYPE type)
 {
-   s62_type s62_type = S62_TYPE_INVALID;
+  s62_type s62_type = S62_TYPE_INVALID;
 
-   switch (type)
-     {
-	case DB_TYPE_SHORT :
-	  s62_type = S62_TYPE_SMALLINT;
-	  break;
-	case DB_TYPE_INTEGER :
-	  s62_type = S62_TYPE_INTEGER;
-	  break;
-	case DB_TYPE_BIGINT :
-	  s62_type = S62_TYPE_BIGINT;
-	  break;
-	case DB_TYPE_FLOAT :
-	  s62_type = S62_TYPE_FLOAT;
-	  break;
-	case DB_TYPE_DOUBLE :
-	  s62_type = S62_TYPE_DOUBLE;
-	  break;
-	case DB_TYPE_NUMERIC :
-	  s62_type = S62_TYPE_DECIMAL;
-	  break;
-	case DB_TYPE_STRING :
-	  s62_type = S62_TYPE_VARCHAR;
-	  break;
-	case DB_TYPE_TIME :
-	  s62_type = S62_TYPE_TIME;
-	  break;
-	case DB_TYPE_TIMESTAMP :
-	case DB_TYPE_DATETIME :
-	  s62_type = S62_TYPE_TIMESTAMP;
-	  break;
-	case DB_TYPE_DATE :
-	  s62_type = S62_TYPE_DATE;
-	  break;
-	default :	
-	  s62_type = S62_TYPE_INVALID;
-	  break;
-     }
+  switch (type)
+    {
+    case DB_TYPE_SHORT:
+      s62_type = S62_TYPE_SMALLINT;
+      break;
+    case DB_TYPE_INTEGER:
+      s62_type = S62_TYPE_INTEGER;
+      break;
+    case DB_TYPE_BIGINT:
+      s62_type = S62_TYPE_BIGINT;
+      break;
+    case DB_TYPE_FLOAT:
+      s62_type = S62_TYPE_FLOAT;
+      break;
+    case DB_TYPE_DOUBLE:
+      s62_type = S62_TYPE_DOUBLE;
+      break;
+    case DB_TYPE_NUMERIC:
+      s62_type = S62_TYPE_DECIMAL;
+      break;
+    case DB_TYPE_STRING:
+      s62_type = S62_TYPE_VARCHAR;
+      break;
+    case DB_TYPE_TIME:
+      s62_type = S62_TYPE_TIME;
+      break;
+    case DB_TYPE_TIMESTAMP:
+    case DB_TYPE_DATETIME:
+      s62_type = S62_TYPE_TIMESTAMP;
+      break;
+    case DB_TYPE_DATE:
+      s62_type = S62_TYPE_DATE;
+      break;
+    default:
+      s62_type = S62_TYPE_INVALID;
+      break;
+    }
 
-   return (s62_type);
+  return (s62_type);
 }
