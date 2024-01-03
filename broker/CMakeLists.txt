@@ -147,9 +147,13 @@ target_include_directories(api_cas PRIVATE ${EP_INCLUDES})
 target_include_directories(api_cas PRIVATE ${BASE_DIR})
 target_include_directories(api_cas PRIVATE ${S62_DIR})
 
-link_directories( /turbograph-v3/turbograph-v3/build/tbgpp-common/third_party/velox/velox/functions/prestosql/json )
-target_link_libraries(api_cas ${S62_LIB_DIR}/libtbgpp-api-server.a)
-target_link_libraries(api_cas LINK_PRIVATE rt)
+find_library (
+  S62LIB
+  NAMES libtbgpp-api-server.so
+  HINTS /turbograph-v3/turbograph-v3/build-release/tbgpp-api-server
+  REQUIRED)
+
+target_link_libraries(api_cas ${S62LIB})
 
 #set(BROKERADMIN_SOURCES
 #  ${BROKER_DIR}/broker_admin_so.c
@@ -174,6 +178,7 @@ target_link_libraries(api_cas LINK_PRIVATE rt)
 #target_include_directories(brokeradmin PRIVATE ${BASE_DIR})
 
 install(TARGETS
+#  tbgpp-api-server
   api_broker
   broker_monitor
   brokerutil

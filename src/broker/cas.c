@@ -396,6 +396,9 @@ main (int argc, char *argv[])
 
   set_cubrid_home ();
 
+  fclose (stdout);
+  fclose (stderr);
+
   res = cas_main ();
 
   return res;

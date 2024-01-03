@@ -129,6 +129,7 @@ typedef enum
   S62_MAX_STMT_TYPE
 } S62_STMT_TYPE;
 
+extern s62_version s62_get_version_ex();
 extern int s62_get_workspace (const char *dbname, char *worspace);
 extern char *s62_getplan (S62_STATEMENT* statement);
 extern int s62_get_property_from_statement (S62_STATEMENT* statement, S62_PROPERTY ** property);

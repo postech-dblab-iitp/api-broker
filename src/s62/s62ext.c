@@ -6,6 +6,13 @@
 
 #include "s62ext.h"
 
+static char _s62_version[20] = { "11.3.0.0001" };
+
+s62_version s62_get_version_ex()
+{
+  return (_s62_version);
+}
+
 // get workspace from databases.txt
 int s62_get_workspace (const char *dbname, char *workspace)
 {
@@ -152,11 +159,13 @@ s62_close_statement (S62_STATEMENT * statement)
       return;
     }
 
+#if 0
   if (statement->query != NULL)
     free (statement->query);
   if (statement->plan != NULL)
     free (statement->plan);
   s62_close_property(statement->property);
+#endif
 
   free (statement);
 
@@ -179,6 +188,7 @@ DB_TYPE s62type_to_dbtype (s62_type type)
 	  break;
 	case S62_TYPE_BIGINT :
 	case S62_TYPE_UBIGINT :
+	case S62_TYPE_ID :
 	  db_type = DB_TYPE_BIGINT;
 	  break;
 	case S62_TYPE_FLOAT :

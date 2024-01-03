@@ -13,7 +13,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "s62ext.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -103,6 +102,8 @@ typedef enum S62_TYPE {
 	S62_TYPE_UNION,
 	// S62_bit
 	S62_TYPE_BIT,
+	// S62_ID
+	S62_TYPE_ID,
 } s62_type;
 
 //! Days are stored as days since 1970-01-01
@@ -288,7 +289,7 @@ void s62_disconnect();
 
 s62_conn_state s62_is_connected();
 
-s62_error_code s62_get_last_error(char *errmsg);
+s62_error_code s62_get_last_error(char **errmsg);
 
 s62_version s62_get_version();
 
@@ -393,6 +394,12 @@ s62_time s62_get_time(s62_resultset_wrapper* result_set_wrp, idx_t col_idx);
 s62_timestamp s62_get_timestamp(s62_resultset_wrapper* result_set_wrp, idx_t col_idx);
 
 s62_string s62_get_varchar(s62_resultset_wrapper* result_set_wrp, idx_t col_idx);
+
+s62_decimal s62_get_decimal(s62_resultset_wrapper* result_set_wrp, idx_t col_idx);
+
+s62_string s62_decimal_to_string (s62_decimal val);
+
+uint64_t s62_get_id(s62_resultset_wrapper* result_set_wrp, idx_t col_idx);
 
 #ifdef __cplusplus
 }

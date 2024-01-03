@@ -384,6 +384,7 @@ ux_database_connect (char *db_name, char *db_user, char *db_passwd, char **db_er
   char *p;
   int err_code;
   char workspace[500];
+  char *errstr;
 
   cas_log_write (0, true, "--ux_database_connect: dbname(%s), db_user(%s), db_passwd(%s)", db_name, db_user, db_passwd);
 
@@ -407,11 +408,14 @@ ux_database_connect (char *db_name, char *db_user, char *db_passwd, char **db_er
 	  return ERROR_INFO_SET (-2, CAS_ERROR_INDICATOR);
 	}
 
+cas_log_write(0, true, "-- s62_connect (%s) -- before call\n", workspace);
       if ((err_code = s62_connect (workspace)) < 0)
 	{
-	  cas_log_write (0, true, "can't connect db with %s [%d]", workspace, s62_get_last_error(NULL));;
+          char *errstr;
+	  cas_log_write (0, true, "can't connect db with %s [%d]", workspace, s62_get_last_error(&errstr));;
 	  goto connect_error;
 	}
+cas_log_write(0, true, "-- s62_connect (%s) -- after call\n", workspace);
 
       p = strchr (db_name, '@');
       if (p)
@@ -419,12 +423,12 @@ ux_database_connect (char *db_name, char *db_user, char *db_passwd, char **db_er
 	  *p = '\0';
 	  strncpy (as_info->database_name, db_name, sizeof (as_info->database_name) - 1);
 	  *p = (char) '@';
-	  strncpy (as_info->database_name, p + 1, sizeof (as_info->database_host) - 1);
+	  strncpy (as_info->database_host, p + 1, sizeof (as_info->database_host) - 1);
 	}
       else
 	{
 	  strncpy (as_info->database_name, db_name, sizeof (as_info->database_name) - 1);
-	  strncpy (as_info->database_name, "localhost", sizeof (as_info->database_host) - 1);
+	  strncpy (as_info->database_host, "localhost", sizeof (as_info->database_host) - 1);
 	}
       as_info->last_connect_time = time (NULL);
 
@@ -436,11 +440,13 @@ ux_database_connect (char *db_name, char *db_user, char *db_passwd, char **db_er
 	   || strcmp (database_user, db_user) != 0 || strcmp (database_passwd, db_passwd) != 0)
     {
       // relogin without connecting
+      cas_log_write(0, true, "-- already be connected, but don't need to connect");
       strncpy (database_user, db_user, sizeof (database_user) - 1);
       strncpy (database_passwd, db_passwd, sizeof (database_passwd) - 1);
     }
   else
     {
+      cas_log_write(0, true, "-- already be connected, but don't need to connect");
       // already be connected, but we need to check whether connecting to tg++
     }
 
@@ -448,14 +454,21 @@ ux_database_connect (char *db_name, char *db_user, char *db_passwd, char **db_er
 
 connect_error:
 
-  return ERROR_INFO_SET_WITH_MSG (s62_get_last_error (NULL), DBMS_ERROR_INDICATOR, "ux_database_connect error !!");
+  return ERROR_INFO_SET_WITH_MSG (s62_get_last_error (&errstr), DBMS_ERROR_INDICATOR, "ux_database_connect error !!");
 }
 
 int
 ux_is_database_connected (void)
 {
+int is_connected = 0;
+
   cas_log_write (0, true, "--ux_is_database_connected");
-  return (s62_is_connected ());
+  if (s62_is_connected () == S62_CONNECTED)
+    {
+       is_connected = 1;
+    }
+
+  return (is_connected);
 }
 
 void
@@ -490,6 +503,7 @@ ux_prepare (char *sql_stmt, int flag, char auto_commit_mode, T_NET_BUF * net_buf
   int stmt_type;
   int err_code;
   int result_cache_lifetime;
+  char *errstr;
 
   cas_log_write (0, true, "--ux_prepare (%s)", sql_stmt);
 
@@ -533,7 +547,7 @@ ux_prepare (char *sql_stmt, int flag, char auto_commit_mode, T_NET_BUF * net_buf
   if (stmt_id == NULL)
     {
       srv_handle->is_prepared = FALSE;
-      err_code = ERROR_INFO_SET (s62_get_last_error (NULL), DBMS_ERROR_INDICATOR);
+      err_code = ERROR_INFO_SET (s62_get_last_error (&errstr), DBMS_ERROR_INDICATOR);
       goto prepare_error;
     }
   else
@@ -642,6 +656,7 @@ ux_execute (T_SRV_HANDLE * srv_handle, char flag, int max_col_size, int max_row,
   S62_RESULTSET *resultset = (S62_RESULTSET *) NULL;
   int i, type_idx, val_idx;
   int num_result = -1;
+  char *errstr;
 
   cas_log_write (0, true, "--ux_execute");
   hm_qresult_end (srv_handle, FALSE);
@@ -682,7 +697,7 @@ ux_execute (T_SRV_HANDLE * srv_handle, char flag, int max_col_size, int max_row,
   num_result = s62_execute (stmt_id, &resultset);
   if (num_result < 0)
     {
-      err_code = ERROR_INFO_SET (s62_get_last_error (NULL), DBMS_ERROR_INDICATOR);
+      err_code = ERROR_INFO_SET (s62_get_last_error (&errstr), DBMS_ERROR_INDICATOR);
       goto execute_error;
     }
   stmt_type = srv_handle->stmt_type;
@@ -881,7 +896,7 @@ ux_get_db_version (T_NET_BUF * net_buf, T_REQ_INFO * req_info)
 {
   s62_version p;
 
-  p = s62_get_version ();
+  p = s62_get_version_ex ();
 
   cas_log_write (0, true, "--ux_get_db_version : %s", p);
   net_buf_cp_int (net_buf, 0, NULL);
@@ -1035,8 +1050,9 @@ fetch_result (T_SRV_HANDLE * srv_handle, int cursor_pos, int fetch_count, char f
   char sensitive_flag = fetch_flag & CCI_FETCH_SENSITIVE;
   int num_properties;
   int i;
-  int ret_fetch = -1;
+  s62_fetch_state ret_fetch = S62_ERROR_RESULT;
   int *type_properties = NULL;
+  char *errstr;
 
   cas_log_write (0, true, "--fetch_result");
 
@@ -1066,12 +1082,6 @@ fetch_result (T_SRV_HANDLE * srv_handle, int cursor_pos, int fetch_count, char f
       return ERROR_INFO_SET (CAS_ER_NO_MORE_DATA, CAS_ERROR_INDICATOR);
     }
 
-  ret_fetch = s62_fetch_next (result);
-  if (ret_fetch < 0)
-    {
-      err_code = ERROR_INFO_SET (s62_get_last_error (NULL), DBMS_ERROR_INDICATOR);
-      goto fetch_error;
-    }
 
   num_properties = s62_get_property_count (result);
 
@@ -1100,6 +1110,19 @@ fetch_result (T_SRV_HANDLE * srv_handle, int cursor_pos, int fetch_count, char f
       net_buf_cp_int (net_buf, cursor_pos, NULL);
       net_buf_cp_object (net_buf, &tuple_obj);
 
+      ret_fetch = s62_fetch_next (result);
+      if (ret_fetch == S62_ERROR_RESULT)
+        {
+          err_code = ERROR_INFO_SET (s62_get_last_error (&errstr), DBMS_ERROR_INDICATOR);
+          goto fetch_error;
+        } 
+      else if (ret_fetch == S62_END_OF_RESULT)
+	{
+	  fetch_end_flag = 1;
+	  ux_cursor_close (srv_handle);
+	  break;
+        }
+
       for (i = 0; i < num_properties; i++)
 	{
 	  err_code = value_to_netbuf (result, net_buf, i, srv_handle->max_col_size, *(type_properties + i));
@@ -1111,20 +1134,6 @@ fetch_result (T_SRV_HANDLE * srv_handle, int cursor_pos, int fetch_count, char f
 
       num_tuple++;
       cursor_pos++;
-
-      if (ret_fetch == 0)
-	{
-	  fetch_end_flag = 1;
-	  ux_cursor_close (srv_handle);
-	  break;
-	}
-
-      ret_fetch = s62_fetch_next (result);
-      if (ret_fetch < 0)
-	{
-	  err_code = ERROR_INFO_SET (s62_get_last_error (NULL), DBMS_ERROR_INDICATOR);
-	  goto fetch_error;
-	}
     }
 
   if (type_properties != NULL)
@@ -1761,6 +1770,8 @@ prepare_column_list_info_set (char prepare_flag, T_QUERY_RESULT * q_result, T_NE
   int num_cols;
   int num_col_offset;
   unsigned char type;
+  char *dot;
+  int i = 0;
 
   q_result->col_updatable = FALSE;
   q_result->include_oid = FALSE;
@@ -1774,7 +1785,7 @@ prepare_column_list_info_set (char prepare_flag, T_QUERY_RESULT * q_result, T_NE
   num_cols = s62_get_property_from_statement (q_result->stmt_id, &property);
   net_buf_cp_int (net_buf, num_cols, NULL);
 
-  for (ptr = property; ptr != NULL; ptr = ptr->next)
+  for (ptr = property; ptr != NULL; ptr = ptr->next, i++)
     {
       // 1. data type
       type = set_extended_cas_type (CCI_U_TYPE_UNKNOWN, s62type_to_dbtype(ptr->property_type));
@@ -1783,15 +1794,48 @@ prepare_column_list_info_set (char prepare_flag, T_QUERY_RESULT * q_result, T_NE
       net_buf_cp_short (net_buf, ptr->scale);
       // 3. precision
       net_buf_cp_int (net_buf, ptr->precision, NULL);
-      // 4. column name
-      net_buf_cp_int (net_buf, (int) strlen (ptr->property_name) + 1, NULL);
-      net_buf_cp_str (net_buf, ptr->property_name, (int) strlen (ptr->property_name) + 1);
-      // 5. attr name
-      net_buf_cp_int (net_buf, (int) strlen (ptr->property_name) + 1, NULL);
-      net_buf_cp_str (net_buf, ptr->property_name, (int) strlen (ptr->property_name) + 1);
+      // 4. column name & 5. attr name
+      if (strlen (ptr->property_name) <= 0)
+	{
+	  net_buf_cp_int (net_buf, (int) strlen ("_unknown") + 1, NULL);
+	  net_buf_cp_str (net_buf, "_unknown", strlen ("_unknown") + 1);
+	  net_buf_cp_int (net_buf, (int) strlen ("_unknown") + 1, NULL);
+	  net_buf_cp_str (net_buf, "_unknown", strlen ("_unknown") + 1);
+        }
+      else
+	{
+      	   for (dot = ptr->property_name; *dot != '\0'; dot++)
+	     {
+	        if (*dot == '.') break;
+             }
+
+           if (*dot == '.')
+             {
+                dot = dot + 1;
+                net_buf_cp_int (net_buf, (int) strlen (dot) + 1, NULL);
+                net_buf_cp_str (net_buf, dot, (int) strlen (dot) + 1);
+                net_buf_cp_int (net_buf, (int) strlen (dot) + 1, NULL);
+                net_buf_cp_str (net_buf, dot, (int) strlen (dot) + 1);
+             }
+           else
+	     {
+                net_buf_cp_int (net_buf, (int) strlen (ptr->property_name) + 1, NULL);
+                net_buf_cp_str (net_buf, ptr->property_name, (int) strlen (ptr->property_name) + 1);
+                net_buf_cp_int (net_buf, (int) strlen (ptr->property_name) + 1, NULL);
+                net_buf_cp_str (net_buf, ptr->property_name, (int) strlen (ptr->property_name) + 1);
+             }
+        }
       // 6. class name
-      net_buf_cp_int (net_buf, (int) strlen (ptr->label_name) + 1, NULL);
-      net_buf_cp_str (net_buf, ptr->label_name, (int) strlen (ptr->label_name) + 1);
+      if (ptr->label_type == S62_OTHER || strlen (ptr->label_name) <= 0) 
+        {
+      	   net_buf_cp_int (net_buf, (int) strlen ("_others"), NULL);
+      	   net_buf_cp_str (net_buf, "_others", (int) strlen ("_others"));
+	}
+      else
+	{
+      	   net_buf_cp_int (net_buf, (int) strlen (ptr->label_name) + 1, NULL);
+      	   net_buf_cp_str (net_buf, ptr->label_name, (int) strlen (ptr->label_name) + 1);
+        }
       // 7. is not null
       net_buf_cp_byte (net_buf, 0);
       // 8. default value
@@ -1813,7 +1857,14 @@ prepare_column_list_info_set (char prepare_flag, T_QUERY_RESULT * q_result, T_NE
       net_buf_cp_byte (net_buf, 0);
     }
 
-  return 0;
+  if (num_cols == i)
+    {
+      return 0;
+    }
+  else 
+    {
+      return -1;
+    }
 }
 
 static int
@@ -2037,15 +2088,7 @@ value_to_netbuf (S62_RESULTSET * resultset, T_NET_BUF * net_buf, int idx, int ma
 
   switch (column_type_flag)
     {
-    case DB_TYPE_OBJECT:
-    case DB_TYPE_VARBIT:
-    case DB_TYPE_BIT:
-    case DB_TYPE_ENUMERATION:
-      break;
-    case DB_TYPE_VARCHAR:
-    case DB_TYPE_CHAR:
-    case DB_TYPE_VARNCHAR:
-    case DB_TYPE_NCHAR:
+    case S62_TYPE_VARCHAR :
       {
 	s62_string str;
 	int bytes_size = 0;
@@ -2063,89 +2106,114 @@ value_to_netbuf (S62_RESULTSET * resultset, T_NET_BUF * net_buf, int idx, int ma
 	    bytes_size = MIN (bytes_size, max_col_size);
 	  }
 
+//	printf ("str.data : %s\n", str.data);
 	add_res_data_string (net_buf, str.data, bytes_size, ext_col_type, CAS_SCHEMA_DEFAULT_CHARSET, &data_size);
       }
       break;
-    case DB_TYPE_SMALLINT:
+    case S62_TYPE_SMALLINT :
       {
-	short smallint;
+	int16_t smallint;
 	smallint = s62_get_int16 (resultset, idx);
 	add_res_data_short (net_buf, smallint, ext_col_type, &data_size);
       }
       break;
-    case DB_TYPE_INTEGER:
+    case S62_TYPE_USMALLINT :
       {
-	int int_val;
+	uint16_t smallint;
+	smallint = s62_get_uint16 (resultset, idx);
+	add_res_data_short (net_buf, smallint, ext_col_type, &data_size);
+      }
+      break;
+    case S62_TYPE_INTEGER:
+      {
+	int32_t int_val;
 	int_val = s62_get_int32 (resultset, idx);
 	add_res_data_int (net_buf, int_val, ext_col_type, &data_size);
       }
       break;
-    case DB_TYPE_BIGINT:
+    case S62_TYPE_UINTEGER:
       {
-	DB_BIGINT bigint_val;
+	uint32_t int_val;
+	int_val = s62_get_uint32 (resultset, idx);
+	add_res_data_int (net_buf, int_val, ext_col_type, &data_size);
+      }
+      break;
+    case S62_TYPE_BIGINT:
+      {
+	int64_t bigint_val;
+	bigint_val = s62_get_int64 (resultset, idx);
 	add_res_data_bigint (net_buf, bigint_val, ext_col_type, &data_size);
       }
       break;
-    case DB_TYPE_DOUBLE:
+    case S62_TYPE_UBIGINT:
+      {
+	uint64_t bigint_val;
+	bigint_val = s62_get_uint64 (resultset, idx);
+	add_res_data_bigint (net_buf, bigint_val, ext_col_type, &data_size);
+      }
+      break;
+    case S62_TYPE_ID:
+      {
+	uint64_t bigint_val;
+	bigint_val = s62_get_id (resultset, idx);
+	add_res_data_bigint (net_buf, bigint_val, ext_col_type, &data_size);
+      }
+      break;
+    case S62_TYPE_DOUBLE:
       {
 	double d_val;
+	d_val = s62_get_double (resultset, idx);
 	add_res_data_double (net_buf, d_val, ext_col_type, &data_size);
       }
       break;
-    case DB_TYPE_MONETARY:
-      break;
-    case DB_TYPE_FLOAT:
+    case S62_TYPE_FLOAT:
       {
 	float f_val;
+	f_val = s62_get_float (resultset, idx);
 	add_res_data_float (net_buf, f_val, ext_col_type, &data_size);
       }
       break;
-    case DB_TYPE_DATE:
+    case S62_TYPE_DECIMAL:
+      {
+	s62_decimal f_decimal;
+	s62_string str;
+
+	f_decimal = s62_get_decimal (resultset, idx);
+	str = s62_decimal_to_string (f_decimal);
+	add_res_data_string (net_buf, str.data, str.size, ext_col_type, CAS_SCHEMA_DEFAULT_CHARSET, &data_size);
+      }
+      break;
+    case S62_TYPE_DATE:
       {
 	int yr, mon, day;
+	yr = 2024;
+	mon = 12;
+	day = 13;
 	add_res_data_date (net_buf, (short) yr, (short) mon, (short) day, ext_col_type, &data_size);
       }
       break;
-    case DB_TYPE_TIME:
+    case S62_TYPE_TIME:
       {
 	int hour, minute, second;
+	hour = 10;
+	minute = 20;
+	second = 00;
 	add_res_data_time (net_buf, (short) hour, (short) minute, (short) second, ext_col_type, &data_size);
       }
       break;
-    case DB_TYPE_TIMESTAMP:
+    case S62_TYPE_TIMESTAMP:
       {
 	int yr, mon, day, hh, mm, ss;
+	yr = 2024;
+	mon = 12;
+	day = 13;
+	hh = 10;
+	mm = 20;
+	ss = 00;
 	add_res_data_timestamp (net_buf, (short) yr, (short) mon, (short) day, (short) hh, (short) mm, (short) ss,
 				ext_col_type, &data_size);
       }
       break;
-    case DB_TYPE_TIMESTAMPLTZ:
-    case DB_TYPE_TIMESTAMPTZ:
-      break;
-    case DB_TYPE_DATETIME:
-      {
-	int yr, mon, day, hh, mm, ss, ms;
-	add_res_data_datetime (net_buf, (short) yr, (short) mon, (short) day, (short) hh, (short) mm, (short) ss,
-			       (short) ms, ext_col_type, &data_size);
-      }
-      break;
-    case DB_TYPE_DATETIMELTZ:
-    case DB_TYPE_DATETIMETZ:
-      break;
-    case DB_TYPE_NUMERIC:
-      {
-	char buf[128];
-
-	add_res_data_string (net_buf, buf, strlen (buf), ext_col_type, CAS_SCHEMA_DEFAULT_CHARSET, &data_size);
-      }
-      break;
-    case DB_TYPE_SET:
-    case DB_TYPE_MULTISET:
-    case DB_TYPE_SEQUENCE:	/* DB_TYPE_LIST */
-    case DB_TYPE_RESULTSET:
-    case DB_TYPE_BLOB:
-    case DB_TYPE_CLOB:
-    case DB_TYPE_JSON:
     default:
       net_buf_cp_int (net_buf, -1, NULL);	/* null */
       data_size = 4;
@@ -2210,7 +2278,9 @@ sch_attr_info (T_NET_BUF * net_buf, char *class_name, char *attr_name, char patt
       type = S62_OTHER;
     }
 
+  cas_log_write (0, true, "--s62_get_property_from_catalog [%s] [%d]  -- before call", class_name, type);
   num_results = s62_get_property_from_catalog (class_name, type, &property_res);
+  cas_log_write (0, true, "--s62_get_property_from_catalog -- after call");
   if (num_results < 0)
     {
       num_results = 0;
@@ -2220,7 +2290,9 @@ sch_attr_info (T_NET_BUF * net_buf, char *class_name, char *attr_name, char patt
       *result = property_res;
     }
 
+  cas_log_write (0, true, "--net_buf_cp_int");
   net_buf_cp_int (net_buf, num_results, NULL);
+  cas_log_write (0, true, "--schema_attr_meta");
   schema_attr_meta (net_buf);
 
   return 0;

@@ -111,7 +111,6 @@ error_info_set_force (int err_number, int err_indicator, const char *file, int l
 int
 error_info_set_with_msg (int err_number, int err_indicator, const char *err_msg, bool force, const char *file, int line)
 {
-#if !defined (FOR_API_CAS)
   char *tmp_err_msg;
 
   if ((!force) && (err_info.err_indicator != ERROR_INDICATOR_UNSET))
@@ -122,8 +121,12 @@ error_info_set_with_msg (int err_number, int err_indicator, const char *err_msg,
 
   if ((err_indicator == DBMS_ERROR_INDICATOR) && (err_number == -1))	/* might be connection error */
     {
+#if !defined (FOR_API_CAS)
       assert (er_errid () != NO_ERROR);
       err_info.err_number = er_errid ();
+#else
+      err_info.err_number = err_number;
+#endif
     }
   else
     {
@@ -142,7 +145,9 @@ error_info_set_with_msg (int err_number, int err_indicator, const char *err_msg,
 	{
 	  if (envvar_caserr_trace != NULL && strcasecmp (envvar_caserr_trace, "on") == 0)
 	    {
+#if !defined (FOR_API_CAS)
 	      er_set (ER_ERROR_SEVERITY, ARG_FILE_LINE, ER_SQL_ERROR_LOG_TRACE, 1, err_number);
+#endif
 	    }
 	  return err_indicator;
 	}
@@ -150,7 +155,9 @@ error_info_set_with_msg (int err_number, int err_indicator, const char *err_msg,
 	{
 	  if (envvar_caserr_trace != NULL && strcasecmp (envvar_caserr_trace, "on") == 0)
 	    {
+#if !defined (FOR_API_CAS)
 	      er_set (ER_ERROR_SEVERITY, ARG_FILE_LINE, ER_SQL_ERROR_LOG_MSG_TRACE, 2, err_number, err_msg);
+#endif
 	    }
 	}
     }
@@ -161,13 +168,14 @@ error_info_set_with_msg (int err_number, int err_indicator, const char *err_msg,
     }
   else if (err_indicator == DBMS_ERROR_INDICATOR)
     {
+#if !defined (FOR_API_CAS)
       tmp_err_msg = (char *) db_error_string (1);
       strncpy (err_info.err_string, tmp_err_msg, ERR_MSG_LENGTH - 1);
+#endif
     }
   err_info.err_string[ERR_MSG_LENGTH - 1] = 0;
 
   return err_indicator;
-#endif
 }
 
 int

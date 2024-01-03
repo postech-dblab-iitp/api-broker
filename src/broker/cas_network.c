@@ -134,6 +134,7 @@ net_init_env (char *port_name)
 
   if (bind (sock_fd, (struct sockaddr *) &sock_addr, sock_addr_len) < 0)
     {
+      perror ("net_init_env : ");
       CLOSE_SOCKET (sock_fd);
       return INVALID_SOCKET;
     }
@@ -266,7 +267,9 @@ net_connect_client (SOCKET srv_sock_fd)
   clt_sock_fd = accept (srv_sock_fd, (struct sockaddr *) &clt_sock_addr, &clt_sock_addr_len);
 
   if (IS_INVALID_SOCKET (clt_sock_fd))
-    return INVALID_SOCKET;
+    {
+       return INVALID_SOCKET;
+    }
 
   net_error_flag = 0;
   return clt_sock_fd;
