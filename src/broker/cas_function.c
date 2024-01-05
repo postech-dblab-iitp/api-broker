@@ -459,7 +459,7 @@ fn_execute_internal (SOCKET sock_fd, int argc, void **argv, T_NET_BUF * net_buf,
   net_arg_get_str (&param_mode, &param_mode_size, argv[arg_idx++]);
   if (prepared_srv_h_id != NULL)
     {
-      if (srv_handle->stmt_type == CUBRID_STMT_SELECT)
+      if (srv_handle->stmt_type == S62_STMT_MATCH)
 	{
 	  fetch_flag = 1;
 	}
@@ -484,7 +484,7 @@ fn_execute_internal (SOCKET sock_fd, int argc, void **argv, T_NET_BUF * net_buf,
       /* PROTOCOL_V2 is used only 9.0.0 */
       if (DOES_CLIENT_MATCH_THE_PROTOCOL (req_info->client_version, PROTOCOL_V2))
 	{
-	  if (srv_handle->stmt_type == CUBRID_STMT_SELECT)
+	  if (srv_handle->stmt_type == S62_STMT_MATCH)
 	    {
 	      fetch_flag = 1;
 	    }
@@ -533,13 +533,12 @@ fn_execute_internal (SOCKET sock_fd, int argc, void **argv, T_NET_BUF * net_buf,
   srv_handle->auto_commit_mode = auto_commit_mode;
   srv_handle->forward_only_cursor = forward_only_cursor;
 
-  if (srv_handle->prepare_flag & CCI_PREPARE_CALL)
+  if (srv_handle->prepare_flag & CCI_PREPARE_CALL)	// || flag & CCI_EXEC_QUERY_ALL)
     {
-      // not supported
-    }
-  else if (flag & CCI_EXEC_QUERY_ALL)
-    {
-      // not supported
+      ERROR_INFO_SET (CAS_ER_INTERNAL, CAS_ERROR_INDICATOR);
+      cas_log_write (SRV_HANDLE_QUERY_SEQ_NUM (srv_handle), false, "can't support execute mode");
+      NET_BUF_ERR_SET (net_buf);
+      return FN_KEEP_CONN;
     }
   else
     {
@@ -604,10 +603,7 @@ fn_execute_internal (SOCKET sock_fd, int argc, void **argv, T_NET_BUF * net_buf,
 
   if (fetch_flag && ret_code >= 0 && client_cache_reusable == FALSE)
     {
-      if (srv_handle->stmt_type == CUBRID_STMT_SELECT)
-	{
-	  ux_fetch (srv_handle, 1, 50, 0, 0, net_buf, req_info);
-	}
+      ux_fetch (srv_handle, 1, 50, 0, 0, net_buf, req_info);
     }
 
   cas_log_write (SRV_HANDLE_QUERY_SEQ_NUM (srv_handle), false, "%s %s%d tuple %d time %d.%03d%s%s%s", exec_func_name,
@@ -649,8 +645,6 @@ fn_execute_internal (SOCKET sock_fd, int argc, void **argv, T_NET_BUF * net_buf,
 	  cas_slow_log_end ();
 	}
     }
-
-
 
   /* set is_pooled */
   if (as_info->cur_statement_pooling)
@@ -1128,7 +1122,7 @@ bind_value_print (char type, void *net_value, bool slow_log)
 	if (val_size > 0)
 	  {
 #if defined (FOR_API_CAS)
-	    num_chars = strlen(str_val);
+	    num_chars = strlen (str_val);
 #else
 	    num_chars = intl_char_count ((const unsigned char *) str_val, val_size, charset, &num_chars) - 1;
 #endif

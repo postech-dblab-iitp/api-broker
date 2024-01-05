@@ -477,30 +477,30 @@ main (int argc, char *argv[])
       goto error1;
     }
 
-    {
+  {
 #if defined(WIN_FW)
-      num_thr = shm_br->br_info[br_index].appl_server_max_num;
+    num_thr = shm_br->br_info[br_index].appl_server_max_num;
 
-      thr_index = (int *) malloc (sizeof (int) * num_thr);
-      if (thr_index == NULL)
-	{
-	  UW_SET_ERROR_CODE (UW_ER_NO_MORE_MEMORY, 0);
-	  goto error1;
-	}
+    thr_index = (int *) malloc (sizeof (int) * num_thr);
+    if (thr_index == NULL)
+      {
+	UW_SET_ERROR_CODE (UW_ER_NO_MORE_MEMORY, 0);
+	goto error1;
+      }
 
-      /* initialize session request queue. queue size is 1 */
-      session_request_q = (T_MAX_HEAP_NODE *) malloc (sizeof (T_MAX_HEAP_NODE) * num_thr);
-      if (session_request_q == NULL)
-	{
-	  UW_SET_ERROR_CODE (UW_ER_NO_MORE_MEMORY, 0);
-	  goto error1;
-	}
-      for (i = 0; i < num_thr; i++)
-	{
-	  session_request_q[i].clt_sock_fd = INVALID_SOCKET;
-	}
+    /* initialize session request queue. queue size is 1 */
+    session_request_q = (T_MAX_HEAP_NODE *) malloc (sizeof (T_MAX_HEAP_NODE) * num_thr);
+    if (session_request_q == NULL)
+      {
+	UW_SET_ERROR_CODE (UW_ER_NO_MORE_MEMORY, 0);
+	goto error1;
+      }
+    for (i = 0; i < num_thr; i++)
+      {
+	session_request_q[i].clt_sock_fd = INVALID_SOCKET;
+      }
 #endif
-    }
+  }
 
   set_cubrid_file (FID_SQL_LOG_DIR, shm_appl->log_dir);
   set_cubrid_file (FID_SLOW_LOG_DIR, shm_appl->slow_log_dir);
@@ -512,9 +512,9 @@ main (int argc, char *argv[])
 
   THREAD_BEGIN (receiver_thread, receiver_thr_f, NULL);
 
-    {
-      THREAD_BEGIN (dispatch_thread, dispatch_thr_f, NULL);
-    }
+  {
+    THREAD_BEGIN (dispatch_thread, dispatch_thr_f, NULL);
+  }
   THREAD_BEGIN (psize_check_thread, psize_check_thr_f, NULL);
   THREAD_BEGIN (cas_monitor_thread, cas_monitor_thr_f, NULL);
 
@@ -523,39 +523,39 @@ main (int argc, char *argv[])
       THREAD_BEGIN (hang_check_thread, hang_check_thr_f, NULL);
     }
 
-    {
+  {
 #if defined(WIN_FW)
-      for (i = 0; i < num_thr; i++)
-	{
-	  thr_index[i] = i;
-	  THREAD_BEGIN (service_thread, service_thr_f, thr_index + i);
-	  shm_appl->as_info[i].last_access_time = time (NULL);
-	  shm_appl->as_info[i].transaction_start_time = (time_t) 0;
-	  if (i < shm_br->br_info[br_index].appl_server_min_num)
-	    {
-	      shm_appl->as_info[i].service_flag = SERVICE_ON;
-	    }
-	  else
-	    {
-	      shm_appl->as_info[i].service_flag = SERVICE_OFF_ACK;
-	    }
-	}
+    for (i = 0; i < num_thr; i++)
+      {
+	thr_index[i] = i;
+	THREAD_BEGIN (service_thread, service_thr_f, thr_index + i);
+	shm_appl->as_info[i].last_access_time = time (NULL);
+	shm_appl->as_info[i].transaction_start_time = (time_t) 0;
+	if (i < shm_br->br_info[br_index].appl_server_min_num)
+	  {
+	    shm_appl->as_info[i].service_flag = SERVICE_ON;
+	  }
+	else
+	  {
+	    shm_appl->as_info[i].service_flag = SERVICE_OFF_ACK;
+	  }
+      }
 #endif
 
-      SET_BROKER_OK_CODE ();
+    SET_BROKER_OK_CODE ();
 
-      while (process_flag)
-	{
-	  SLEEP_MILISEC (0, 100);
+    while (process_flag)
+      {
+	SLEEP_MILISEC (0, 100);
 
-	  if (shm_br->br_info[br_index].auto_add_appl_server == OFF)
-	    {
-	      continue;
-	    }
+	if (shm_br->br_info[br_index].auto_add_appl_server == OFF)
+	  {
+	    continue;
+	  }
 
-	  broker_drop_one_cas_by_time_to_kill ();
-	}			/* end of while (process_flag) */
-    }				/* end of if (SHARD == OFF) */
+	broker_drop_one_cas_by_time_to_kill ();
+      }				/* end of while (process_flag) */
+  }				/* end of if (SHARD == OFF) */
 
 error1:
 
@@ -1295,12 +1295,12 @@ run_appl_server (T_APPL_SERVER_INFO * as_info_p, int br_index, int as_index)
 #if !defined(WINDOWS)
   signal (SIGCHLD, SIG_IGN);
 
-    {
-      char path[BROKER_PATH_MAX];
+  {
+    char path[BROKER_PATH_MAX];
 
-      ut_get_as_port_name (path, shm_br->br_info[br_index].name, as_index, BROKER_PATH_MAX);
-      unlink (path);
-    }
+    ut_get_as_port_name (path, shm_br->br_info[br_index].name, as_index, BROKER_PATH_MAX);
+    unlink (path);
+  }
 
   pid = fork ();
   if (pid == 0)
@@ -1700,30 +1700,30 @@ hang_check_thr_f (void *ar)
   while (process_flag)
     {
       cur_time = time (NULL);
-	{
-	  for (i = 0; i < br_info_p->appl_server_max_num; i++)
-	    {
-	      as_info_p = &(shm_appl->as_info[i]);
+      {
+	for (i = 0; i < br_info_p->appl_server_max_num; i++)
+	  {
+	    as_info_p = &(shm_appl->as_info[i]);
 
-	      if ((as_info_p->service_flag != SERVICE_ON) || as_info_p->claimed_alive_time == 0)
-		{
-		  continue;
-		}
-	      if ((br_info_p->hang_timeout < cur_time - as_info_p->claimed_alive_time))
-		{
-		  cur_hang_count++;
-		}
-	    }
-	}
+	    if ((as_info_p->service_flag != SERVICE_ON) || as_info_p->claimed_alive_time == 0)
+	      {
+		continue;
+	      }
+	    if ((br_info_p->hang_timeout < cur_time - as_info_p->claimed_alive_time))
+	      {
+		cur_hang_count++;
+	      }
+	  }
+      }
 
       hang_count[cur_index] = cur_hang_count;
 
       avg_hang_count = ut_get_avg_from_array (hang_count, NUM_COLLECT_COUNT_PER_INTVL);
 
-	{
-	  br_info_p->reject_client_flag =
-	    (avg_hang_count >= (float) br_info_p->appl_server_num * HANG_COUNT_THRESHOLD_RATIO);
-	}
+      {
+	br_info_p->reject_client_flag =
+	  (avg_hang_count >= (float) br_info_p->appl_server_num * HANG_COUNT_THRESHOLD_RATIO);
+      }
 
       cur_index = (cur_index + 1) % NUM_COLLECT_COUNT_PER_INTVL;
       cur_hang_count = 0;
@@ -2414,9 +2414,9 @@ get_as_sql_log_filename (char *log_filename, int len, char *broker_name, T_APPL_
 
   get_cubrid_file (FID_SQL_LOG_DIR, dirname, BROKER_PATH_MAX);
 
-    {
-      ret = snprintf (log_filename, BROKER_PATH_MAX - 1, "%s%s_%d.sql.log", dirname, broker_name, as_index + 1);
-    }
+  {
+    ret = snprintf (log_filename, BROKER_PATH_MAX - 1, "%s%s_%d.sql.log", dirname, broker_name, as_index + 1);
+  }
   if (ret < 0)
     {
       // bad name
@@ -2432,9 +2432,9 @@ get_as_slow_log_filename (char *log_filename, int len, char *broker_name, T_APPL
 
   get_cubrid_file (FID_SLOW_LOG_DIR, dirname, BROKER_PATH_MAX);
 
-    {
-      ret = snprintf (log_filename, BROKER_PATH_MAX - 1, "%s%s_%d.slow.log", dirname, broker_name, as_index + 1);
-    }
+  {
+    ret = snprintf (log_filename, BROKER_PATH_MAX - 1, "%s%s_%d.slow.log", dirname, broker_name, as_index + 1);
+  }
   if (ret < 0)
     {
       // bad name

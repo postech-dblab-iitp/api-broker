@@ -983,9 +983,9 @@ extern INT64 timeval_diff_in_msec (const struct timeval *end_time, const struct 
 extern int timeval_add_msec (struct timeval *added_time, const struct timeval *start_time, int msec);
 extern int timeval_to_timespec (struct timespec *to, const struct timeval *from);
 
-extern FILE *port_open_memstream (char **ptr, size_t * sizeloc);
+extern FILE *port_open_memstream (char **ptr, size_t *sizeloc);
 
-extern void port_close_memstream (FILE * fp, char **ptr, size_t * sizeloc);
+extern void port_close_memstream (FILE * fp, char **ptr, size_t *sizeloc);
 
 extern char *trim (char *str);
 

@@ -2131,7 +2131,7 @@ end:
  *
  */
 INT64
-timeval_diff_in_msec (const struct timeval * end_time, const struct timeval * start_time)
+timeval_diff_in_msec (const struct timeval *end_time, const struct timeval *start_time)
 {
   INT64 msec;
 
@@ -2196,7 +2196,7 @@ timeval_to_timespec (struct timespec *to, const struct timeval *from)
  *         before you use this.
  */
 FILE *
-port_open_memstream (char **ptr, size_t * sizeloc)
+port_open_memstream (char **ptr, size_t *sizeloc)
 {
 #ifdef HAVE_OPEN_MEMSTREAM
   return open_memstream (ptr, sizeloc);
@@ -2218,7 +2218,7 @@ port_open_memstream (char **ptr, size_t * sizeloc)
  *         this function flush contents to ptr before close handle
  */
 void
-port_close_memstream (FILE * fp, char **ptr, size_t * sizeloc)
+port_close_memstream (FILE * fp, char **ptr, size_t *sizeloc)
 {
   fflush (fp);
 
@@ -2617,7 +2617,7 @@ strlcpy (char *dst, const char *src, size_t siz)
 
 #if (defined(WINDOWS) && defined(_WIN32))
 time_t
-mktime_for_win32 (struct tm * tm)
+mktime_for_win32 (struct tm *tm)
 {
   struct tm tm_tmp;
   __time32_t t_32;

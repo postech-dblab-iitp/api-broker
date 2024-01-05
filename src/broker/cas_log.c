@@ -1141,7 +1141,7 @@ cas_log_query_info_init (int id, char is_only_query_plan)
     {
       set_optimization_level (513);
     }
-#endif 
+#endif
 }
 
 char *
@@ -1430,7 +1430,7 @@ cas_log_begin_hang_check_time (void)
 	  set_hang_check_time ();
 	}
       return is_prev_time_set;
-#endif 
+#endif
     }
   return false;
 }
@@ -1445,7 +1445,7 @@ cas_log_end_hang_check_time (bool is_prev_time_set)
 	{
 	  unset_hang_check_time ();
 	}
-#endif 
+#endif
     }
 }
 

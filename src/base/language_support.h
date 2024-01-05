@@ -286,8 +286,8 @@ extern "C"
 #if defined(ENABLE_UNUSED_FUNCTION)
   extern int lang_char_mem_size (const char *p);
   extern int lang_char_screen_size (const char *p);
-  extern int lang_wchar_mem_size (const wchar_t * p);
-  extern int lang_wchar_screen_size (const wchar_t * p);
+  extern int lang_wchar_mem_size (const wchar_t *p);
+  extern int lang_wchar_screen_size (const wchar_t *p);
 #endif
   extern bool lang_check_identifier (const char *name, int length);
   extern const LANG_LOCALE_DATA *lang_locale (void);
@@ -297,7 +297,7 @@ extern "C"
   extern const char *lang_get_lang_name_from_id (const INTL_LANG lang_id);
   extern int lang_set_flag_from_lang (const char *lang_str, bool has_user_format, bool has_user_lang, int *flag);
   extern int lang_set_flag_from_lang_id (const INTL_LANG lang, bool has_user_format, bool has_user_lang, int *flag);
-  extern INTL_LANG lang_get_lang_id_from_flag (const int flag, bool * has_user_format, bool * has_user_lang);
+  extern INTL_LANG lang_get_lang_id_from_flag (const int flag, bool *has_user_format, bool *has_user_lang);
   extern char lang_digit_grouping_symbol (const INTL_LANG lang_id);
   extern char lang_digit_fractional_symbol (const INTL_LANG lang_id);
   extern bool lang_is_coll_name_allowed (const char *name);

@@ -319,7 +319,7 @@ admin_start_cmd (T_BROKER_INFO * br_info, int br_num, int master_shm_id, bool ac
   /* cannot execute broker initialize unless success host look-up */
   if (GETHOSTNAME (hostname, CUB_MAXHOSTNAMELEN) != 0)
     {
-      fprintf (stderr, "[ERROR] Can't get hostname.\n"); 
+      fprintf (stderr, "[ERROR] Can't get hostname.\n");
       fflush (stderr);
       return -1;
     }
@@ -1084,18 +1084,18 @@ admin_reset_cmd (int master_shm_id, const char *broker_name)
     }
   assert (shm_as_p->num_appl_server <= APPL_SERVER_NUM_LIMIT);
 
-   int limit_appl_index = shm_br->br_info[br_index].appl_server_max_num;
+  int limit_appl_index = shm_br->br_info[br_index].appl_server_max_num;
 
-   if (limit_appl_index > APPL_SERVER_NUM_LIMIT)
-     {
-       limit_appl_index = APPL_SERVER_NUM_LIMIT;
-     }
+  if (limit_appl_index > APPL_SERVER_NUM_LIMIT)
+    {
+      limit_appl_index = APPL_SERVER_NUM_LIMIT;
+    }
 
-    for (i = 0; i < limit_appl_index; i++)
-     {
-       shm_as_p->as_info[i].reset_flag = TRUE;
-     }
-    
+  for (i = 0; i < limit_appl_index; i++)
+    {
+      shm_as_p->as_info[i].reset_flag = TRUE;
+    }
+
 
   uw_shm_detach (shm_as_p);
   uw_shm_detach (shm_br);
@@ -1205,28 +1205,28 @@ admin_conf_change (int master_shm_id, const char *br_name, const char *conf_name
 	  goto set_conf_error;
 	}
 
-	{
-	  if (as_number <= 0)
-	    {
-	      shm_br->br_info[br_index].sql_log_mode = sql_log_mode;
-	      shm_as_p->sql_log_mode = sql_log_mode;
-	      for (i = 0; i < shm_br->br_info[br_index].appl_server_max_num; i++)
-		{
-		  shm_as_p->as_info[i].cur_sql_log_mode = sql_log_mode;
-		  shm_as_p->as_info[i].cas_log_reset = CAS_LOG_RESET_REOPEN;
-		}
-	    }
-	  else
-	    {
-	      if (as_number > shm_as_p->num_appl_server)
-		{
-		  sprintf (admin_err_msg, "Invalid cas number : %d", as_number);
-		  goto set_conf_error;
-		}
-	      shm_as_p->as_info[as_number - 1].cur_sql_log_mode = sql_log_mode;
-	      shm_as_p->as_info[as_number - 1].cas_log_reset = CAS_LOG_RESET_REOPEN;
-	    }
-	}
+      {
+	if (as_number <= 0)
+	  {
+	    shm_br->br_info[br_index].sql_log_mode = sql_log_mode;
+	    shm_as_p->sql_log_mode = sql_log_mode;
+	    for (i = 0; i < shm_br->br_info[br_index].appl_server_max_num; i++)
+	      {
+		shm_as_p->as_info[i].cur_sql_log_mode = sql_log_mode;
+		shm_as_p->as_info[i].cas_log_reset = CAS_LOG_RESET_REOPEN;
+	      }
+	  }
+	else
+	  {
+	    if (as_number > shm_as_p->num_appl_server)
+	      {
+		sprintf (admin_err_msg, "Invalid cas number : %d", as_number);
+		goto set_conf_error;
+	      }
+	    shm_as_p->as_info[as_number - 1].cur_sql_log_mode = sql_log_mode;
+	    shm_as_p->as_info[as_number - 1].cas_log_reset = CAS_LOG_RESET_REOPEN;
+	  }
+      }
     }
   else if (strcasecmp (conf_name, "SLOW_LOG") == 0)
     {
@@ -1238,28 +1238,28 @@ admin_conf_change (int master_shm_id, const char *br_name, const char *conf_name
 	  sprintf (admin_err_msg, "invalid value : %s", conf_value);
 	  goto set_conf_error;
 	}
-	{
-	  if (as_number <= 0)
-	    {
-	      shm_br->br_info[br_index].slow_log_mode = slow_log_mode;
-	      shm_as_p->slow_log_mode = slow_log_mode;
-	      for (i = 0; i < shm_br->br_info[br_index].appl_server_max_num; i++)
-		{
-		  shm_as_p->as_info[i].cur_slow_log_mode = slow_log_mode;
-		  shm_as_p->as_info[i].cas_slow_log_reset = CAS_LOG_RESET_REOPEN;
-		}
-	    }
-	  else
-	    {
-	      if (as_number > shm_as_p->num_appl_server)
-		{
-		  sprintf (admin_err_msg, "Invalid cas number : %d", as_number);
-		  goto set_conf_error;
-		}
-	      shm_as_p->as_info[as_number - 1].cur_slow_log_mode = slow_log_mode;
-	      shm_as_p->as_info[as_number - 1].cas_slow_log_reset = CAS_LOG_RESET_REOPEN;
-	    }
-	}
+      {
+	if (as_number <= 0)
+	  {
+	    shm_br->br_info[br_index].slow_log_mode = slow_log_mode;
+	    shm_as_p->slow_log_mode = slow_log_mode;
+	    for (i = 0; i < shm_br->br_info[br_index].appl_server_max_num; i++)
+	      {
+		shm_as_p->as_info[i].cur_slow_log_mode = slow_log_mode;
+		shm_as_p->as_info[i].cas_slow_log_reset = CAS_LOG_RESET_REOPEN;
+	      }
+	  }
+	else
+	  {
+	    if (as_number > shm_as_p->num_appl_server)
+	      {
+		sprintf (admin_err_msg, "Invalid cas number : %d", as_number);
+		goto set_conf_error;
+	      }
+	    shm_as_p->as_info[as_number - 1].cur_slow_log_mode = slow_log_mode;
+	    shm_as_p->as_info[as_number - 1].cas_slow_log_reset = CAS_LOG_RESET_REOPEN;
+	  }
+      }
     }
   else if (strcasecmp (conf_name, "ACCESS_MODE") == 0)
     {
@@ -1278,12 +1278,12 @@ admin_conf_change (int master_shm_id, const char *br_name, const char *conf_name
       br_info_p->access_mode = access_mode;
       shm_as_p->access_mode = access_mode;
 
-	{
-	  for (i = 0; i < shm_as_p->num_appl_server && i < APPL_SERVER_NUM_LIMIT; i++)
-	    {
-	      shm_as_p->as_info[i].reset_flag = TRUE;
-	    }
-	}
+      {
+	for (i = 0; i < shm_as_p->num_appl_server && i < APPL_SERVER_NUM_LIMIT; i++)
+	  {
+	    shm_as_p->as_info[i].reset_flag = TRUE;
+	  }
+      }
     }
   else if (strcasecmp (conf_name, "CONNECT_ORDER") == 0)
     {
@@ -1305,12 +1305,12 @@ admin_conf_change (int master_shm_id, const char *br_name, const char *conf_name
       br_info_p->connect_order = connect_order;
       shm_as_p->connect_order = connect_order;
 
-	{
-	  for (i = 0; i < shm_as_p->num_appl_server && i < APPL_SERVER_NUM_LIMIT; i++)
-	    {
-	      shm_as_p->as_info[i].reset_flag = TRUE;
-	    }
-	}
+      {
+	for (i = 0; i < shm_as_p->num_appl_server && i < APPL_SERVER_NUM_LIMIT; i++)
+	  {
+	    shm_as_p->as_info[i].reset_flag = TRUE;
+	  }
+      }
     }
   else if (strcasecmp (conf_name, "MAX_NUM_DELAYED_HOSTS_LOOKUP") == 0)
     {
@@ -1683,12 +1683,12 @@ admin_conf_change (int master_shm_id, const char *br_name, const char *conf_name
       br_info_p->trigger_action_flag = val;
       shm_as_p->trigger_action_flag = val;
 
-	{
-	  for (i = 0; i < shm_as_p->num_appl_server && i < APPL_SERVER_NUM_LIMIT; i++)
-	    {
-	      shm_as_p->as_info[i].reset_flag = TRUE;
-	    }
-	}
+      {
+	for (i = 0; i < shm_as_p->num_appl_server && i < APPL_SERVER_NUM_LIMIT; i++)
+	  {
+	    shm_as_p->as_info[i].reset_flag = TRUE;
+	  }
+      }
     }
   else if (strcasecmp (conf_name, "PREFERRED_HOSTS") == 0)
     {

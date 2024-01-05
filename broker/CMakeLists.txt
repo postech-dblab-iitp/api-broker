@@ -132,6 +132,7 @@ if(UNIX)
   list(APPEND CUB_CAS_SOURCES ${BROKER_DIR}/broker_error.c)
   list(APPEND CUB_CAS_SOURCES ${BROKER_DIR}/broker_process_size.c)
   list(APPEND CUB_CAS_SOURCES ${BROKER_DIR}/broker_recv_fd.c)
+  list(APPEND CUB_CAS_SOURCES ${S62_DIR}/s62ext.c)
   list(APPEND CUB_CAS_SOURCES ${BASE_DIR}/environment_variable.c)
   list(APPEND CUB_CAS_SOURCES ${BASE_DIR}/porting.c)
   SET_SOURCE_FILES_PROPERTIES(
@@ -144,9 +145,15 @@ add_executable(api_cas WIN32 ${CUB_CAS_SOURCES})
 target_compile_definitions(api_cas PRIVATE ${BROKER_DEFS} FOR_API_BROKER FOR_API_CAS CAS_ERROR_LOG)
 target_include_directories(api_cas PRIVATE ${EP_INCLUDES})
 target_include_directories(api_cas PRIVATE ${BASE_DIR})
-if(UNIX)
-  target_link_libraries(api_cas LINK_PRIVATE rt)
-endif(UNIX)
+target_include_directories(api_cas PRIVATE ${S62_DIR})
+
+find_library (
+  S62LIB
+  NAMES libtbgpp-api-server.so
+  HINTS /turbograph-v3/turbograph-v3/build-release/tbgpp-api-server
+  REQUIRED)
+
+target_link_libraries(api_cas ${S62LIB})
 
 #set(BROKERADMIN_SOURCES
 #  ${BROKER_DIR}/broker_admin_so.c
@@ -171,6 +178,7 @@ endif(UNIX)
 #target_include_directories(brokeradmin PRIVATE ${BASE_DIR})
 
 install(TARGETS
+#  tbgpp-api-server
   api_broker
   broker_monitor
   brokerutil

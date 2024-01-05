@@ -29,6 +29,7 @@
 #include "cas_net_buf.h"
 #include "cas_handle.h"
 #include "cas_dbms_util.h"
+#include "s62ext.h"
 
 #define CAS_TYPE_SET(TYPE)		((TYPE) | CCI_CODE_SET)
 #define CAS_TYPE_MULTISET(TYPE)		((TYPE) | CCI_CODE_MULTISET)
@@ -85,13 +86,13 @@ extern int ux_execute_batch (int argc, void **argv, T_NET_BUF * net_buf, T_REQ_I
 extern int ux_cursor_update (T_SRV_HANDLE * srv_handle, int cursor_pos, int argc, void **argv, T_NET_BUF * net_buf);
 extern void ux_cursor_close (T_SRV_HANDLE * srv_handle);
 
-extern int make_bind_value (int num_bind, int argc, void **argv, void ** ret_val, T_NET_BUF * net_buf,
+extern int make_bind_value (int num_bind, int argc, void **argv, void **ret_val, T_NET_BUF * net_buf,
 			    char desired_type);
 extern int ux_get_attr_type_str (char *class_name, char *attr_name, T_NET_BUF * net_buf, T_REQ_INFO *);
 extern int ux_get_query_info (int srv_h_id, char info_type, T_NET_BUF * net_buf);
 extern int ux_get_parameter_info (int srv_h_id, T_NET_BUF * net_buf);
 extern void ux_get_default_setting (void);
-extern void ux_get_system_parameter (const char *param, bool * value);
+extern void ux_get_system_parameter (const char *param, bool *value);
 extern void ux_free_result (void *res);
 extern char ux_db_type_to_cas_type (int db_type);
 

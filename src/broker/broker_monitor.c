@@ -886,9 +886,9 @@ appl_info_display (T_SHM_APPL_SERVER * shm_appl, T_APPL_SERVER_INFO * as_info_p,
   char buf[256];
 #endif
 
-    {
-      as_id = as_index + 1;
-    }
+  {
+    as_id = as_index + 1;
+  }
 
   if (as_info_p->service_flag != SERVICE_ON)
     {
@@ -911,9 +911,9 @@ appl_info_display (T_SHM_APPL_SERVER * shm_appl, T_APPL_SERVER_INFO * as_info_p,
 
   col_len = 0;
 
-    {
-      print_value (FIELD_ID, &as_id, FIELD_T_INT);
-    }
+  {
+    print_value (FIELD_ID, &as_id, FIELD_T_INT);
+  }
   print_value (FIELD_PID, &as_info_p->pid, FIELD_T_INT);
   if (elapsed_time > 0)
     {
