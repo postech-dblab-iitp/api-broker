@@ -95,3 +95,5 @@ build_x86_64_profile/
 
 javatest/*
 conf/*
+src/databases.txt
+src/test/*
