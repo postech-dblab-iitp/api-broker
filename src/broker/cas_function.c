@@ -1361,3 +1361,29 @@ update_error_query_count (T_APPL_SERVER_INFO * as_info_p, const T_ERROR_INFO * e
 	}
     }
 }
+
+FN_RETURN
+fn_get_query_info (SOCKET sock_fd, int argc, void **argv, T_NET_BUF * net_buf, T_REQ_INFO * req_info)
+{
+  char info_type;
+  int srv_h_id, size;
+  char *sql_stmt = NULL;
+
+  if (argc < 2)
+    {
+      ERROR_INFO_SET (CAS_ER_ARGS, CAS_ERROR_INDICATOR);
+      NET_BUF_ERR_SET (net_buf);
+      return FN_KEEP_CONN;
+    }
+
+  net_arg_get_int (&srv_h_id, argv[0]);
+  net_arg_get_char (info_type, argv[1]);
+  if (argc >= 3)
+    {
+      net_arg_get_str (&sql_stmt, &size, argv[2]);
+    }
+
+  ux_get_query_info (srv_h_id, sql_stmt, net_buf);
+
+  return FN_KEEP_CONN;
+}

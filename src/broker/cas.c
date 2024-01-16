@@ -177,7 +177,7 @@ static T_SERVER_FUNC server_fn_table[] = {
   fn_not_supported,		/* API_CAS_FC_EXECUTE_ARRAY */
   fn_not_supported,		/* API_CAS_FC_CURSOR_UPDATE */
   fn_not_supported,		/* API_CAS_FC_GET_ATTR_TYPE_STR */
-  fn_not_supported,		/* API_CAS_FC_GET_QUERY_INFO */
+  fn_get_query_info,		/* API_CAS_FC_GET_QUERY_INFO */
   fn_not_supported,		/* API_CAS_FC_DEPRECATED4 */
   fn_not_supported,		/* API_CAS_FC_SAVEPOINT */
   fn_not_supported,		/* API_CAS_FC_PARAMETER_INFO */
