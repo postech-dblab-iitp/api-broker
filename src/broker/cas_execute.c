@@ -526,16 +526,6 @@ ux_prepare (char *sql_stmt, int flag, char auto_commit_mode, T_NET_BUF * net_buf
 
   sql_stmt = srv_handle->sql_stmt;
 
-  if (flag & CCI_PREPARE_QUERY_INFO)
-    {
-      cas_log_query_info_init (srv_handle->id, FALSE);
-      srv_handle->query_info_flag = TRUE;
-    }
-  else
-    {
-      srv_handle->query_info_flag = FALSE;
-    }
-
   if (flag & CCI_PREPARE_CALL
       || flag & CCI_PREPARE_UPDATABLE || flag & CCI_PREPARE_INCLUDE_OID || flag & CCI_PREPARE_XASL_CACHE_PINNED)
     {
@@ -555,6 +545,7 @@ ux_prepare (char *sql_stmt, int flag, char auto_commit_mode, T_NET_BUF * net_buf
       stmt_type = S62_STMT_MATCH;
       srv_handle->stmt_type = stmt_type;
       srv_handle->is_prepared = TRUE;
+      srv_handle->query_info_flag = TRUE;
     }
 
 prepare_result_set:
@@ -934,9 +925,70 @@ ux_get_attr_type_str (char *class_name, char *attr_name, T_NET_BUF * net_buf, T_
 }
 
 int
-ux_get_query_info (int srv_h_id, char info_type, T_NET_BUF * net_buf)
+ux_get_query_info (int srv_h_id, char *sql_stmt, T_NET_BUF * net_buf)
 {
+  T_SRV_HANDLE *srv_handle;
+  int err_code;
+  char *errstr;
+  int tmp_id = -1;
+
   cas_log_write (0, true, "--ux_get_query_info");
+
+  srv_handle = hm_find_srv_handle (srv_h_id);
+
+  if (srv_handle == NULL && sql_stmt == NULL)
+    {
+      net_buf_cp_byte (net_buf, '\0');
+      goto end;
+    }
+  else if (srv_handle == NULL && sql_stmt != NULL)
+    {
+      S62_STATEMENT *stmt_id = NULL;
+      int err_code;
+      char *errstr;
+
+      tmp_id = hm_new_srv_handle (&srv_handle, query_seq_num_next_value ());
+      if (tmp_id < 0)
+	{
+	  net_buf_cp_byte (net_buf, '\0');
+	  goto end;
+	}
+
+      get_num_markers (sql_stmt, &(srv_handle->sql_stmt));
+      if (srv_handle->sql_stmt == NULL)
+	{
+	  err_code = ERROR_INFO_SET (CAS_ER_NO_MORE_MEMORY, CAS_ERROR_INDICATOR);
+	  NET_BUF_ERR_SET (net_buf);
+	  goto end;
+	}
+
+      sql_stmt = srv_handle->sql_stmt;
+
+      stmt_id = s62_prepare (sql_stmt);
+      if (stmt_id == NULL)
+	{
+	  err_code = ERROR_INFO_SET (s62_get_last_error (&errstr), DBMS_ERROR_INDICATOR);
+	  NET_BUF_ERR_SET (net_buf);
+	  goto end;
+	}
+      srv_handle->query_info_flag = TRUE;
+      srv_handle->stmt_id = stmt_id;
+    }
+
+  net_buf_cp_int (net_buf, 0, NULL);
+
+  if (srv_handle->stmt_id->plan != NULL)
+    {
+      net_buf_cp_str (net_buf, srv_handle->stmt_id->plan, strlen (srv_handle->stmt_id->plan));
+    }
+  net_buf_cp_byte (net_buf, '\0');
+
+end:
+  if (tmp_id != -1)
+    {
+      hm_srv_handle_free (tmp_id);
+    }
+
   return 0;
 }
 

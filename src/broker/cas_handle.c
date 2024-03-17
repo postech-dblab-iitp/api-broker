@@ -153,7 +153,7 @@ hm_srv_handle_free (int h_id)
     }
 
   srv_handle_content_free (srv_handle);
-  srv_handle_rm_tmp_file (h_id, srv_handle);
+//  srv_handle_rm_tmp_file (h_id, srv_handle);
 
   FREE_MEM (srv_handle->classes);
   FREE_MEM (srv_handle->classes_chn);
