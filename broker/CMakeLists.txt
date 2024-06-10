@@ -149,8 +149,8 @@ target_include_directories(api_cas PRIVATE ${S62_DIR})
 
 find_library (
   S62LIB
-  NAMES libtbgpp-api-server.so
-  HINTS /turbograph-v3/turbograph-v3/build-release/tbgpp-api-server
+  NAMES libtbgpp-api-server-shared.so
+  HINTS /turbograph-v3/turbograph-v3/build/tbgpp-api-server
   REQUIRED)
 
 target_link_libraries(api_cas ${S62LIB})
