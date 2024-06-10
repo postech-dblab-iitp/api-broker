@@ -152,7 +152,8 @@ typedef enum
   CCI_U_TYPE_TIMETZ = 33,	/* internal use only - RESERVED */
   /* end of disabled types */
   CCI_U_TYPE_JSON = 34,
-  CCI_U_TYPE_LAST = CCI_U_TYPE_JSON
+  CCI_U_TYPE_HUGEINT = 35,
+  CCI_U_TYPE_LAST = CCI_U_TYPE_HUGEINT
 } T_CCI_U_TYPE;
 
 

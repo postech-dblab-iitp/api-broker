@@ -257,6 +257,8 @@ static int bind_from_netval (S62_STATEMENT * stmt_id, int idx, void *net_type, v
 static int value_to_netbuf (S62_RESULTSET * resultset, T_NET_BUF * net_buf, int idx, int max_col_size,
 			    char column_type_flag);
 
+static s62_string hugeint_to_string(s62_hugeint *hugeint);
+
 static char cas_u_type[] = { 0,	/* 0 */
   CCI_U_TYPE_INT,		/* 1 */
   CCI_U_TYPE_FLOAT,		/* 2 */
@@ -292,6 +294,7 @@ static char cas_u_type[] = { 0,	/* 0 */
   CCI_U_TYPE_DATETIMETZ,	/* 38 */
   CCI_U_TYPE_DATETIMELTZ,	/* 39 */
   CCI_U_TYPE_JSON,		/* 40 */
+  CCI_U_TYPE_HUGEINT, /* 41 */
 };
 
 #if defined (FOR_API_CAS)
@@ -2138,7 +2141,6 @@ value_to_netbuf (S62_RESULTSET * resultset, T_NET_BUF * net_buf, int idx, int ma
 #else
   ext_col_type = 0;
 #endif
-
   switch (column_type_flag)
     {
     case S62_TYPE_VARCHAR:
@@ -2205,6 +2207,17 @@ value_to_netbuf (S62_RESULTSET * resultset, T_NET_BUF * net_buf, int idx, int ma
 	add_res_data_bigint (net_buf, bigint_val, ext_col_type, &data_size);
       }
       break;
+    case S62_TYPE_HUGEINT:
+      {
+    s62_hugeint hugeint_val;
+    s62_string str;
+
+    hugeint_val = s62_get_hugeint(resultset, idx);
+    str = hugeint_to_string(&hugeint_val);
+
+    add_res_data_string (net_buf, str.data, str.size, ext_col_type, CAS_SCHEMA_DEFAULT_CHARSET, &data_size);
+      }
+      break;
     case S62_TYPE_ID:
       {
 	uint64_t bigint_val;
@@ -2238,10 +2251,13 @@ value_to_netbuf (S62_RESULTSET * resultset, T_NET_BUF * net_buf, int idx, int ma
       break;
     case S62_TYPE_DATE:
       {
-	int yr, mon, day;
-	yr = 2024;
-	mon = 12;
-	day = 13;
+    s62_date date_val;
+    int yr, mon, day;
+    date_val = s62_get_date (resultset, idx);
+    cas_log_write (0, true, "date_val : %d", date_val.days);
+    yr = 2024;
+    mon = 12;
+    day = 13;
 	add_res_data_date (net_buf, (short) yr, (short) mon, (short) day, ext_col_type, &data_size);
       }
       break;
@@ -2526,4 +2542,21 @@ static int
 recompile_statement (T_SRV_HANDLE * srv_handle)
 {
   return 0;
+}
+
+static s62_string
+hugeint_to_string(s62_hugeint *hugeint)
+{
+  char str[40];
+
+  __int128 combinedValue = ((__int128)hugeint->upper << 64) | hugeint->lower;
+  snprintf(str, sizeof(str), "%" PRIu64 "%" PRIu64, (uint64_t)(combinedValue >> 64), (uint64_t)combinedValue);
+
+  s62_string result;
+  result.size = strlen(str);
+  result.data = (char*)malloc(result.size + 1);
+  strcpy(result.data, str);
+
+  return result;
+
 }

@@ -218,6 +218,9 @@ s62type_to_dbtype (s62_type type)
     case S62_TYPE_DATE:
       db_type = DB_TYPE_DATE;
       break;
+    case S62_TYPE_HUGEINT:
+      db_type = DB_TYPE_HUGEINT;
+      break;
     default:
       db_type = DB_TYPE_UNKNOWN;
       break;

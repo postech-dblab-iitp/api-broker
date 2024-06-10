@@ -1,0 +1,4 @@
+# sample databases.txt for demodb
+#
+# db-name vol-path db-host log-path lob-base-path
+demodb       /data/tpch/sf1
