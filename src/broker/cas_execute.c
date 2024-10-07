@@ -258,6 +258,7 @@ static int value_to_netbuf (S62_RESULTSET * resultset, T_NET_BUF * net_buf, int 
 			    char column_type_flag);
 
 static s62_string hugeint_to_string(s62_hugeint *hugeint);
+static void days_to_date(s62_date days, int *year, int *month, int *day);
 
 static char cas_u_type[] = { 0,	/* 0 */
   CCI_U_TYPE_INT,		/* 1 */
@@ -2251,13 +2252,10 @@ value_to_netbuf (S62_RESULTSET * resultset, T_NET_BUF * net_buf, int idx, int ma
       break;
     case S62_TYPE_DATE:
       {
-    s62_date date_val;
-    int yr, mon, day;
-    date_val = s62_get_date (resultset, idx);
-    cas_log_write (0, true, "date_val : %d", date_val.days);
-    yr = 2024;
-    mon = 12;
-    day = 13;
+  s62_date date_val;
+  int yr, mon, day;
+  date_val = s62_get_date (resultset, idx);
+  days_to_date(date_val, &yr, &mon, &day);
 	add_res_data_date (net_buf, (short) yr, (short) mon, (short) day, ext_col_type, &data_size);
       }
       break;
@@ -2559,4 +2557,21 @@ hugeint_to_string(s62_hugeint *hugeint)
 
   return result;
 
+}
+
+static void
+days_to_date(s62_date date, int *year, int *month, int *day)
+{
+  //1970-01-01
+  struct tm base_date = {0};
+  base_date.tm_year = 70;
+  base_date.tm_mon = 0;
+  base_date.tm_mday = 1;
+
+  time_t base_time = mktime(&base_date);
+  time_t real_time = base_time + (date.days * 24 * 60 * 60);
+  struct tm *real_date = localtime(&real_time);
+  *year = real_date->tm_year + 1900;
+  *month = real_date->tm_mon + 1;
+  *day = real_date->tm_mday;
 }
