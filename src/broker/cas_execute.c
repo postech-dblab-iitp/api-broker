@@ -258,6 +258,7 @@ static int value_to_netbuf (S62_RESULTSET * resultset, T_NET_BUF * net_buf, int 
 			    char column_type_flag);
 
 static s62_string hugeint_to_string(s62_hugeint *hugeint);
+static void time_to_timestamp(int64_t time, int *year, int *month, int *day, int *hh, int *mm, int *ss);
 static void days_to_date(s62_date days, int *year, int *month, int *day);
 
 static char cas_u_type[] = { 0,	/* 0 */
@@ -2256,29 +2257,29 @@ value_to_netbuf (S62_RESULTSET * resultset, T_NET_BUF * net_buf, int idx, int ma
   int yr, mon, day;
   date_val = s62_get_date (resultset, idx);
   days_to_date(date_val, &yr, &mon, &day);
-	add_res_data_date (net_buf, (short) yr, (short) mon, (short) day, ext_col_type, &data_size);
+  add_res_data_date (net_buf, (short) yr, (short) mon, (short) day, ext_col_type, &data_size);
       }
       break;
     case S62_TYPE_TIME:
       {
-	int hour, minute, second;
-	hour = 10;
-	minute = 20;
-	second = 00;
-	add_res_data_time (net_buf, (short) hour, (short) minute, (short) second, ext_col_type, &data_size);
+  s62_time time_val;
+  int hour, minute, second;
+  time_val = s62_get_time(resultset, idx);
+  int64_t total_seconds = time_val.micros / 1000000;
+  hour = total_seconds / 3600;
+  minute = (total_seconds % 3600) / 60;
+  second = total_seconds % 60;
+  add_res_data_time (net_buf, (short) hour, (short) minute, (short) second, ext_col_type, &data_size);
       }
       break;
     case S62_TYPE_TIMESTAMP:
       {
+  s62_timestamp timestamp;
 	int yr, mon, day, hh, mm, ss;
-	yr = 2024;
-	mon = 12;
-	day = 13;
-	hh = 10;
-	mm = 20;
-	ss = 00;
-	add_res_data_timestamp (net_buf, (short) yr, (short) mon, (short) day, (short) hh, (short) mm, (short) ss,
-				ext_col_type, &data_size);
+  timestamp = s62_get_timestamp(resultset, idx);
+  time_to_timestamp(timestamp.micros, &yr, &mon, &day, &hh, &mm, &ss);
+  add_res_data_timestamp (net_buf, (short) yr, (short) mon, (short) day, (short) hh, (short) mm, (short) ss,
+  ext_col_type, &data_size);
       }
       break;
     default:
@@ -2560,7 +2561,7 @@ hugeint_to_string(s62_hugeint *hugeint)
 }
 
 static void
-days_to_date(s62_date date, int *year, int *month, int *day)
+time_to_timestamp(int64_t time, int *year, int *month, int *day, int *hh, int *mm, int *ss)
 {
   //1970-01-01
   struct tm base_date = {0};
@@ -2569,9 +2570,20 @@ days_to_date(s62_date date, int *year, int *month, int *day)
   base_date.tm_mday = 1;
 
   time_t base_time = mktime(&base_date);
-  time_t real_time = base_time + (date.days * 24 * 60 * 60);
-  struct tm *real_date = localtime(&real_time);
-  *year = real_date->tm_year + 1900;
-  *month = real_date->tm_mon + 1;
-  *day = real_date->tm_mday;
+  time_t real_time = base_time + time;
+  struct tm *real_tm = localtime(&real_time);
+  *year = real_tm->tm_year + 1900;
+  *month = real_tm->tm_mon + 1;
+  *day = real_tm->tm_mday;
+  *hh = real_tm->tm_hour;
+  *mm = real_tm->tm_min;
+  *ss = real_tm->tm_sec;
+}
+
+static void
+days_to_date(s62_date date, int *year, int *month, int *day)
+{
+  int64_t time = (date.days * 24 * 60 * 60);
+  int hh, mm, ss;
+  time_to_timestamp(time, year, month, day, &hh, &mm, &ss);
 }
