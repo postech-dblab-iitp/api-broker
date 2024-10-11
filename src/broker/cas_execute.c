@@ -2275,7 +2275,7 @@ value_to_netbuf (S62_RESULTSET * resultset, T_NET_BUF * net_buf, int idx, int ma
     case S62_TYPE_TIMESTAMP:
       {
   s62_timestamp timestamp;
-	int yr, mon, day, hh, mm, ss;
+  int yr, mon, day, hh, mm, ss;
   timestamp = s62_get_timestamp(resultset, idx);
   time_to_timestamp(timestamp.micros, &yr, &mon, &day, &hh, &mm, &ss);
   add_res_data_timestamp (net_buf, (short) yr, (short) mon, (short) day, (short) hh, (short) mm, (short) ss,
