@@ -44,7 +44,7 @@ packages=""
 print_version_only=0
 
 # variables
-product_name="API_BROKER"
+product_name="API-BROKER"
 product_name_lower=$(echo $product_name | tr '[:upper:]' '[:lower:]')
 typeset -i major_version
 typeset -i minor_version
@@ -52,9 +52,6 @@ typeset -i patch_version
 version=""
 last_checking_msg=""
 output_packages=""
-without_cmserver=""
-without_jdbc="false"
-with_cci="true"
 
 function print_check ()
 {
@@ -179,12 +176,6 @@ function build_clean ()
     fi
   fi
 
-  if [ -f $source_dir/cubrid-cci/BUILD_NUMBER ]; then
-    if [ -f $source_dir/cubrid-cci/CCI-VERSION-DIST ]; then
-      rm $source_dir/cubrid-cci/CCI-VERSION-DIST
-    fi
-  fi
-
   print_result "OK"
 }
 
@@ -197,44 +188,6 @@ function build_configure ()
     mkdir -p $build_dir
   fi
   print_result "OK"
-
-# except CCI
-#
-#  print_check "Checking CCI directory"
-#  if [ ! -d "$source_dir/cubrid-cci" -o ! -d "$source_dir/cubrid-cci/src" ]; then
-#    print_check "CCI source path is not exist. It must be built for dblink"
-#    if [ -d $source_dir/.git/modules/cubrid-cci ]; then
-#      git submodule deinit -f cubrid-cci
-#    fi
-#    git submodule init cubrid-cci
-#    git submodule update cubrid-cci
-#  fi
-#  configure_options="$configure_options -DWITH_CCI=true"
-
-#  print_check "Checking manager server directory"
-#  if [ ! -d "$source_dir/cubridmanager" -o ! -d "$source_dir/cubridmanager/server" ]; then
-#    without_cmserver="true"
-#    print_error "Manager server source path is not exist. It will not be built"
-#  else
-#    if [ "$with_cci" = "false" ]; then
-#      print_error "Manager server source path is exist, but Manager server requires cci header, It will not be built"
-#    fi
-#  fi
-
- # print_check "Checking JDBC directory"
- # if [ ! -d "$source_dir/cubrid-jdbc" -o ! -d "$source_dir/cubrid-jdbc/src" ]; then
- #   without_jdbc="true"
- #   print_error "JDBC source path is not exist. It will not be built"
- # fi
-
- # print_check "Setting environment variables"
- # if [ "x$java_dir" != "x" ]; then
- #   export JAVA_HOME="$java_dir"
- # elif [ "x$JAVA_HOME" = "x" -a "x$JAVA_HOME" = "x" ]; then
- #   export JAVA_HOME="$default_java_dir"
- # fi
- # export PATH="$JAVA_HOME/bin:$PATH"
- # print_result "OK"
 
   print_check "Prepare configure options"
   # set up prefix
@@ -321,26 +274,6 @@ function build_package ()
     print_fatal "Build directory not found. please build first"
   fi
 
- # print_check "Checking manager server directory"
- # if [ ! -d "$source_dir/cubridmanager" -o ! -d "$source_dir/cubridmanager/server" ]; then
- #   without_cmserver="true"
- #   print_error "Manager server source path is not exist. It will not be packaged"
- # fi
-
- # print_check "Checking JDBC directory"
- # if [ ! -d "$source_dir/cubrid-jdbc" -o ! -d "$source_dir/cubrid-jdbc/src" ]; then
- #   without_jdbc="true"
- #   print_error "JDBC source path is not exist. It will not be packaged"
- # fi
-  
- # print_check "Checking CCI directory"
- # if [ ! -d "$source_dir/cubrid-cci" -o ! -d "$source_dir/cubrid-cci/src" ]; then
- #   with_cci="false"
- #   print_error "CCI source path is not exist. It will not be packaged"
- # else 
- #   with_cci="true"
- # fi
-
  if [ ! -d $output_dir ]; then
     mkdir -p $output_dir
   fi
@@ -362,11 +295,8 @@ function build_package ()
 	# add VERSION-DIST instead of VERSION file for full version string
   if [ -d $source_dir/.git -a -f $source_dir/VERSION ]; then
 	  (cd $source_dir && echo "$version" > VERSION-DIST && ln -sfT . cubrid-$version &&
-	    (git ls-files -o VERSION-DIST ; git ls-files &&
-	      (cd $source_dir/cubridmanager && git ls-files) | sed -e "s|^|cubridmanager/|" &&
-	      ([ "$without_jdbc" = "true" ] || (cd $source_dir/cubrid-jdbc  && git ls-files -o output/VERSION-DIST; git ls-files) | sed -e "/^VERSION$/d" | sed -e "s|^|cubrid-jdbc/|") &&
-	      ([ "$with_cci" = "false" ] || (cd $source_dir/cubrid-cci  && git ls-files -o CCI-VERSION-DIST; git ls-files) | sed -e "/^BUILD_NUMBER$/d" | sed -e "s|^|cubrid-cci/|")) |
-              sed -e "/^VERSION$/d" -e "/^cubrid-jdbc$/d" -e "/^cubrid-cci$/d" -e "s|^|cubrid-$version/|" | $archive_cmd &&
+	    (git ls-files -o VERSION-DIST ; git ls-files ) |
+              sed -e "/^VERSION$/d" -e "s|^|cubrid-$version/|" | $archive_cmd &&
 	      rm cubrid-$version VERSION-DIST)
   else
     #Only handles packaging process when build to packaging file.
@@ -386,20 +316,13 @@ function build_package ()
 	  false
 	fi
       ;;
-      tarball|shell|cci|rpm)
+      tarball|shell)
 	if [ ! -d "$prefix_dir" ]; then
 	  print_fatal "Prefix directory not found"
 	fi
 
-	if [ "$package" = "cci" ]; then
-	  if [ "$with_cci" = "true" ]; then
-	    cci_version=$(cat $source_dir/cubrid-cci/CCI-VERSION-DIST)
-            package_basename="$product_name-CCI-$cci_version-Linux.$build_target"
-	  fi
-  else
     package_basename="$product_name-$version-Linux.$build_target"
-  fi
-  
+
 	if [ ! "$build_mode" = "release" ]; then
 	  package_basename="$package_basename-$build_mode"
 	fi
@@ -409,14 +332,6 @@ function build_package ()
 	elif [ "$package" = "shell" ]; then
 	  package_name="$package_basename.sh"
 	  (cd $build_dir && cpack -G STGZ -B $output_dir)
-	elif [ "$package" = "cci" ]; then
-	  if [ "$with_cci" = "true" ]; then
-	    package_name="$package_basename.tar.gz"
-	    (cd $build_dir && cpack -G TGZ -D CPACK_COMPONENTS_ALL="CCI" -B $output_dir)
-	  fi
-	elif [ "$package" = "rpm" ]; then
-	  package_name="$package_basename.rpm"
-	  (cd $build_dir && cpack -G RPM -B $output_dir)
 	fi
 	if [ $? -eq 0 ]; then
 	  output_packages="$output_packages $package_name"
@@ -425,16 +340,6 @@ function build_package ()
 	else
 	  false
 	fi
-      ;;
-      jdbc)
-        if [ "$without_jdbc" = "false" ]; then
-          jar_files=$(ls $source_dir/cubrid-jdbc/JDBC-*.jar)
-          jdbc_version=$(cat $source_dir/cubrid-jdbc/output/VERSION-DIST)
-          package_name="JDBC-$jdbc_version-$product_name_lower"
-          cp $source_dir/cubrid-jdbc/JDBC-*.jar $output_dir
-          [ $? -eq 0 ] && output_packages="$output_packages $jar_files"
-        fi
-      ;;
     esac
     [ $? -eq 0 ] && print_result "OK [$package_name]" || print_fatal "Packaging for $package failed"
   done
@@ -482,7 +387,7 @@ function show_usage ()
   else
     echo "  -j path Set JAVA_HOME path; [default: $JAVA_HOME]"
   fi
-  echo "  -z arg  Package to generate (src,zip_src,shell,tarball,cci,jdbc,rpm,owfs);"
+  echo "  -z arg  Package to generate (src,zip_src,shell,tarball,owfs);"
   echo "          [default: all]"
   echo "  -? | -h Show this help message and exit"
   echo ""
@@ -574,10 +479,10 @@ function get_options ()
   if [ "$packages" = "all" -o "$packages" = "ALL" ]; then
     case $build_mode in
       release)
-	packages="src zip_src tarball shell cci jdbc rpm"
+	packages="src zip_src tarball shell"
 	;;
       *)
-	packages="tarball shell jdbc cci"
+	packages="tarball shell"
 	;;
     esac
   fi

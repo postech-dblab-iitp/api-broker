@@ -120,7 +120,7 @@ echo "Using target directory: ${toplevel}"
 
 # Notice for CUBRID
 echo ""
-echo "Since CUBRID broker and server versions should match, please make sure that you are running the same version if you operate them in separate machines."
+echo "Since api broker and server versions should match, please make sure that you are running the same version if you operate them in separate machines."
 echo "Do you want to continue? [Yn] : "
 read line leftover
 case ${line} in
@@ -151,15 +151,15 @@ echo "Unpacking finished successfully"
 #
 
 # environment variables for *csh
-cubrid_csh_envfile="$HOME/.cubrid.csh"
-cp ${toplevel}/share/scripts/cubrid.csh ${cubrid_csh_envfile}-@CPACK_PACKAGE_VERSION@
-sed -i '/setenv CUBRID /d' ${cubrid_csh_envfile}-@CPACK_PACKAGE_VERSION@
-sed -i "/CUBRID_DATABASES/isetenv CUBRID $toplevel" ${cubrid_csh_envfile}-@CPACK_PACKAGE_VERSION@
+cubrid_csh_envfile="$HOME/.api-broker.csh"
+cp ${toplevel}/share/scripts/api-broker.csh ${cubrid_csh_envfile}-@CPACK_PACKAGE_VERSION@
+sed -i '/setenv API /d' ${cubrid_csh_envfile}-@CPACK_PACKAGE_VERSION@
+sed -i "/API_DATABASES/isetenv CUBRID $toplevel" ${cubrid_csh_envfile}-@CPACK_PACKAGE_VERSION@
 # environment variables for *sh
-cubrid_sh_envfile="$HOME/.cubrid.sh"
-cp ${toplevel}/share/scripts/cubrid.sh ${cubrid_sh_envfile}-@CPACK_PACKAGE_VERSION@
-sed -i "/CUBRID=/d" ${cubrid_sh_envfile}-@CPACK_PACKAGE_VERSION@
-sed -i "/CUBRID_DATABASE/iexport CUBRID=${toplevel}" ${cubrid_sh_envfile}-@CPACK_PACKAGE_VERSION@
+cubrid_sh_envfile="$HOME/.api-broker.sh"
+cp ${toplevel}/share/scripts/api-broker.sh ${cubrid_sh_envfile}-@CPACK_PACKAGE_VERSION@
+sed -i "/API=/d" ${cubrid_sh_envfile}-@CPACK_PACKAGE_VERSION@
+sed -i "/API_DATABASE/iexport API=${toplevel}" ${cubrid_sh_envfile}-@CPACK_PACKAGE_VERSION@
 
 for e in "$cubrid_csh_envfile" "$cubrid_sh_envfile"; do
   if [ -r "${e}" ]; then
@@ -169,8 +169,8 @@ for e in "$cubrid_csh_envfile" "$cubrid_sh_envfile"; do
   mv "${e}-@CPACK_PACKAGE_VERSION@" "${e}"
 done
 
-# append script for executing .cubrid.sh to .bash_profile
-PRODUCT_NAME="CUBRID"
+# append script for executing .api-broker.sh to .bash_profile
+PRODUCT_NAME="API-BROKER"
 CUBRID_SH_INSTALLED=1
 if [ -z "$SHELL" ];then
    if [ ! -r /etc/passwd ];then
@@ -225,18 +225,18 @@ if [ -z "$append_profile" ];then
 
     case $user_sh in
       bash | sh)
-        echo 'if [ -f $HOME/.cubrid.sh ];then'                                              >> $sh_profile
-        echo '. $HOME/.cubrid.sh'                                                           >> $sh_profile
+        echo 'if [ -f $HOME/.api-broker.sh ];then'                                              >> $sh_profile
+        echo '. $HOME/.api-broker.sh'                                                           >> $sh_profile
         echo 'fi'                                                                           >> $sh_profile
         ;;
       csh | tcsh)
-        echo 'if ( -f ~/.cubrid.csh ) then' 		>> $sh_profile
-        echo '  source ~/.cubrid.csh' 			>> $sh_profile
+        echo 'if ( -f ~/.api-broker.csh ) then' 		>> $sh_profile
+        echo '  source ~/.api-broker.csh' 			>> $sh_profile
         echo 'endif' 					>> $sh_profile
         ;;
       zsh)
-        echo 'if [ -f $HOME/.cubrid.sh ];then'                                              >> $sh_profile
-        echo '  source $HOME/.cubrid.sh'                                                    >> $sh_profile
+        echo 'if [ -f $HOME/.api-broker.sh ];then'                                              >> $sh_profile
+        echo '  source $HOME/.api.broker.sh'                                                    >> $sh_profile
         echo 'fi'                                                                           >> $sh_profile
         ;;
       *)
@@ -248,17 +248,6 @@ fi	# -z "$append_profile"
 
 if [ $CUBRID_SH_INSTALLED -eq 1 ] && [ $bash_exist -eq 0 ];then
   echo "Notification: $sh_profile is created"
-fi
-
-# create a demo db
-if [ -x "${toplevel}/demo/make_cubrid_demo.sh" ]; then
-  . ${cubrid_sh_envfile}
-  (mkdir -p $CUBRID_DATABASES/demodb && cd $CUBRID_DATABASES/demodb && $CUBRID/demo/make_cubrid_demo.sh > /dev/null 2>&1)
-  if [ $? = 0 ]; then
-    echo "demodb has been successfully created."
-  else
-    echo "Cannot create demodb."
-  fi
 fi
 
 echo ""

@@ -1,6 +1,5 @@
 #
-#  Copyright 2008 Search Solution Corporation
-#  Copyright 2016 CUBRID Corporation
+#  Copyright 2024 CUBRID Corporation
 # 
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,7 +16,7 @@
 #
 message(STATUS "======== CMakeLists.txt")
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.16)
 
 function(with_unit_tests res) # checks for -DUNIT_TESTS=ON or -DUNIT_TEST_???=ON
   get_cmake_property(vars VARIABLES)
@@ -42,7 +41,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type (default Debug)")
 endif()
 
-project(CUBRID)
+project(API-BROKER)
 
 #TODO: see why the lines below have no effect
 #list(APPEND CMAKE_CXX_SOURCE_FILE_EXTENSIONS "c")
@@ -72,10 +71,6 @@ option(ENABLE_32BIT "Build for 32-bit banaries (on 64-bit platform)" OFF)
 option(ENABLE_SYSTEMTAP "Enable dynamic tracing support using systemtap" ${ENABLE_SYSTEMTAP_DEFAULT})
 option(USE_DUMA "Use Detect Unintended Memory Access library" OFF)
 option(USE_CUBRID_ENV "Use CUBRID environment variables" ON)
-#option(WITH_JDBC "Build with JDBC driver" ON)
-#option(WITH_CMSERVER "Build with Manager server" ON)
-#option(UNIT_TESTS "Unit tests" OFF)
-#option(WITH_CCI "Build with CCI driver" ON)
 
 # Version info
 # TODO: remove BUILD_NUMBER file and replace with VERSION file
@@ -263,99 +258,7 @@ else()
   message(FATAL_ERROR "Target platform 32bit is no longer supported as of CUBRID 10.2")
 endif()
 
-# FIXME: remove unused checking rule
-#include(CheckSymbolExists)
-#if(WIN32)
-#  check_symbol_exists("_M_AMD64" "" TARGET_ARCH_X64)
-#  if(NOT TARGET_ARCH_X64)
-#    check_symbol_exists("_M_IX86" "" TARGET_ARCH_X86)
-#  endif(NOT TARGET_ARCH_X64)
-#else(WIN32)
-#  check_symbol_exists("__i386__" "" TARGET_ARCH_X86)
-#  check_symbol_exists("__x86_64__" "" TARGET_ARCH_X64)
-#endif(WIN32)
-
 message(STATUS "Build ${PROJECT_NAME} ${CUBRID_VERSION} ${TARGET_PLATFORM_BITS}bit ${CMAKE_BUILD_TYPE} on ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_PROCESSOR}")
-
-# generate parser and lexer
-#set(CSQL_GRAMMAR_INPUT ${CMAKE_SOURCE_DIR}/src/parser/csql_grammar.y)
-#set(CSQL_GRAMMAR_OUTPUT ${CMAKE_BINARY_DIR}/csql_grammar.c)
-#set(CSQL_LEXER_INPUT ${CMAKE_SOURCE_DIR}/src/parser/csql_lexer.l)
-#set(CSQL_LEXER_OUTPUT ${CMAKE_BINARY_DIR}/csql_lexer.c)
-#set(LOADER_GRAMMAR_INPUT ${CMAKE_SOURCE_DIR}/src/loaddb/load_grammar.yy)
-#set(LOADER_GRAMMAR_OUTPUT ${CMAKE_BINARY_DIR}/load_grammar.cpp)
-#set(LOADER_LEXER_INPUT ${CMAKE_SOURCE_DIR}/src/loaddb/load_lexer.l)
-#set(LOADER_LEXER_OUTPUT ${CMAKE_BINARY_DIR}/load_lexer.cpp)
-#set(ESQL_GRAMMAR_INPUT ${CMAKE_SOURCE_DIR}/src/executables/esql_grammar.y)
-#set(ESQL_GRAMMAR_OUTPUT ${CMAKE_BINARY_DIR}/esql_grammar.c)
-#set(ESQL_LEXER_INPUT ${CMAKE_SOURCE_DIR}/src/executables/esql_lexer.l)
-#set(ESQL_LEXER_OUTPUT ${CMAKE_BINARY_DIR}/esql_lexer.c)
-
-# include 3rdparty
-#message("Including Third Party Libraries")
-#add_subdirectory(3rdparty)
-
-# CSQL FLEX/BISON targets
-# replace old bison directives with new ones
-# use add_custom_command because we want to regenerate csql_grammar.yy
-# whenever csql_grammar.y is modified
-#add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/csql_grammar.yy
-#  COMMAND ${CMAKE_COMMAND} -DGRAMMAR_INPUT_FILE=${CMAKE_SOURCE_DIR}/src/parser/csql_grammar.y -DGRAMMAR_OUTPUT_FILE=${CMAKE_CURRENT_BINARY_DIR}/csql_grammar.yy -P ${CMAKE_SOURCE_DIR}/cmake/upgrade_bison_grammar.cmake
-#  MAIN_DEPENDENCY ${CMAKE_SOURCE_DIR}/src/parser/csql_grammar.y
-#)
-
-#set(CSQL_GRAMMAR_INPUT ${CMAKE_CURRENT_BINARY_DIR}/csql_grammar.yy)
-
-# because csql_grammar.yy are generated through a custom command
-# whenever csql_grammar.y is modified, bison and flex will be
-# run to create new outputs
-
-#bison_target(csql_grammar ${CSQL_GRAMMAR_INPUT} ${CSQL_GRAMMAR_OUTPUT}
-#  COMPILE_FLAGS "--no-lines --name-prefix=csql_yy -d -r all")
-#flex_target(csql_lexer ${CSQL_LEXER_INPUT} ${CSQL_LEXER_OUTPUT}
-#  COMPILE_FLAGS "--noline --never-interactive --prefix=csql_yy")
-#add_flex_bison_dependency(csql_lexer csql_grammar)
-#add_custom_target(gen_csql_grammar DEPENDS ${BISON_csql_grammar_OUTPUTS})
-#add_custom_target(gen_csql_lexer DEPENDS ${FLEX_csql_lexer_OUTPUTS})
-
-# Loader FLEX/BISON targets
-#bison_target(loader_grammar ${LOADER_GRAMMAR_INPUT} ${LOADER_GRAMMAR_OUTPUT}
-#  COMPILE_FLAGS "-d -r all")
-#flex_target(loader_lexer ${LOADER_LEXER_INPUT} ${LOADER_LEXER_OUTPUT}
-#  COMPILE_FLAGS "--noline")
-#add_flex_bison_dependency(loader_lexer loader_grammar)
-#add_custom_target(gen_loader_grammar DEPENDS ${BISON_loader_grammar_OUTPUTS})
-#add_custom_target(gen_loader_lexer DEPENDS ${FLEX_loader_lexer_OUTPUTS})
-
-# ESQL FLEX/BISON targets
-# replace old bison directives with new ones
-# use add_custom_command because we want to regenerate esql_grammar.yy
-# whenever esql_grammar.y is modified
-#add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/esql_grammar.yy
-#  COMMAND ${CMAKE_COMMAND} -DGRAMMAR_INPUT_FILE=${CMAKE_SOURCE_DIR}/src/executables/esql_grammar.y -DGRAMMAR_OUTPUT_FILE=${CMAKE_CURRENT_BINARY_DIR}/esql_grammar.yy -P ${CMAKE_SOURCE_DIR}/cmake/upgrade_bison_grammar.cmake
-#  MAIN_DEPENDENCY ${CMAKE_SOURCE_DIR}/src/executables/esql_grammar.y
-#)
-
-#set(ESQL_GRAMMAR_INPUT ${CMAKE_CURRENT_BINARY_DIR}/esql_grammar.yy)
-
-# because esql_grammar.yy are generated through a custom command
-# whenever esql_grammar.y is modified, bison and flex will be
-# run to create new outputs
-
-#bison_target(esql_grammar ${ESQL_GRAMMAR_INPUT} ${ESQL_GRAMMAR_OUTPUT}
-#  COMPILE_FLAGS "--no-lines --name-prefix=esql_yy -d -r all")
-#flex_target(esql_lexer ${ESQL_LEXER_INPUT} ${ESQL_LEXER_OUTPUT}
-#  COMPILE_FLAGS "--noline --never-interactive --prefix=esql_yy")
-#add_flex_bison_dependency(esql_lexer esql_grammar)
-#add_custom_target(gen_esql_grammar DEPENDS ${BISON_esql_grammar_OUTPUTS})
-#add_custom_target(gen_esql_lexer DEPENDS ${FLEX_esql_lexer_OUTPUTS})
-
-# For java stored procedure server
-#include(FindJNI)
-#find_package(JNI 1.5)
-#if(JNI_FOUND)
-#  set(JAVA_INC ${JAVA_INCLUDE_PATH} ${JAVA_INCLUDE_PATH2})
-#endif(JNI_FOUND)
 
 # Build types
 if(CMAKE_BUILD_TYPE MATCHES "Coverage")
@@ -389,19 +292,21 @@ endif(CMAKE_BUILD_TYPE MATCHES "Profile")
 set(BASE_DIR                 ${CMAKE_SOURCE_DIR}/src/base)
 set(BROKER_DIR               ${CMAKE_SOURCE_DIR}/src/broker)
 set(S62_DIR                  ${CMAKE_SOURCE_DIR}/src/s62)
-set(S62_LIB_DIR		     /turbograph-v3/turbograph-v3/build/tbgpp-api-server)
+get_filename_component(S62_LIB_DIR "../build/tbgpp-api-server" ABSOLUTE)
+message("-- S62_LIB_DIR = ${S62_LIB_DIR}")
+
+find_file(S62_API_SERVER_LIB
+        "libtbgpp-api-server-shared.so"
+        PATH ${S62_LIB_DIR}
+        NO_DEFAULT_PATH
+        REQUIRED)
+message("-- S62_API_SERVER_LIB = ${S62_API_SERVER_LIB}")
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(
   include
   src/broker
   )
-if(WITH_CCI)
-  include_directories(
-    cubrid-cci/src/cci
-    cubrid-cci/src/tools
-  )
-endif(WITH_CCI)
 
 include(CheckFunctionExists)
 check_function_exists(asprintf HAVE_ASPRINTF)
@@ -656,7 +561,6 @@ if(USE_CUBRID_ENV)
   set(CUBRID_TZDIR timezones)
   set(CUBRID_DEMODIR demo)
   set(CUBRID_COMPATDIR compat)
-  set(CUBRID_CCIDIR cci)
   set(CUBRID_DATABASES databases)
   set(CUBRID_SOCK CUBRID_SOCK)
 else(USE_CUBRID_ENV)
@@ -730,11 +634,6 @@ else(USE_CUBRID_ENV)
   else()
     list(APPEND DIR_DEFS CUBRID_TMPDIR="${CUBRID_PREFIXDIR}/${CUBRID_TMPDIR}")
   endif()
-  if(IS_ABSOLUTE ${CUBRID_CCIDIR})
-    list(APPEND DIR_DEFS CUBRID_TMPDIR="${CUBRID_CCIDIR}")
-  else()
-    list(APPEND DIR_DEFS CUBRID_TMPDIR="${CUBRID_PREFIXDIR}/${CUBRID_CCIDIR}")
-  endif()
   # directories for install
   set(CUBRID_INCLUDEDIR include CACHE STRING "The directory for header files")
   set(CUBRID_SHLOCALESDIR locales CACHE STRING "The directory for locale files")
@@ -769,81 +668,15 @@ if(WITH_JDBC AND EXISTS ${CMAKE_SOURCE_DIR}/cubrid-jdbc/src)
 endif()
 
 # include subdirectories
-#add_subdirectory(sa)
-#add_subdirectory(cs)
-#add_subdirectory(cubrid)
-#add_subdirectory(util)
-#if(WITH_CCI)
-#  add_subdirectory(cubrid-cci)
-#endif(WITH_CCI)
 add_subdirectory(broker)
-#add_subdirectory(cm_common)
 add_subdirectory(conf)
 add_subdirectory(data)
-#add_subdirectory(msg)
-#add_subdirectory(demo)
-#add_subdirectory(contrib)
-#add_subdirectory(locales)
-#add_subdirectory(timezones)
-#add_subdirectory(jsp)
-#if(AT_LEAST_ONE_UNIT_TEST)
-#  add_subdirectory(unit_tests)
-#endif()
-
-# for cmserver
-if(WITH_CCI AND WITH_CMSERVER AND EXISTS ${CMAKE_SOURCE_DIR}/cubridmanager/server)
-  include(ExternalProject)
-  get_target_property(CCI_PUBLIC_HEADERS cascci PUBLIC_HEADER)
-  get_target_property(CMDEP_PUBLIC_HEADERS cmdep PUBLIC_HEADER)
-  get_target_property(CMSTAT_PUBLIC_HEADERS cmstat PUBLIC_HEADER)
-  list(APPEND CMS_CONFIGURE_OPTS --enable-64bit)
-  add_custom_target(pre_cubridmanager)
-  if(UNIX)
-    set(CMS_DEPENDS cubridcs cascci cmstat cmdep)
-    externalproject_add(cubridmanager
-      LOG_CONFIGURE        TRUE
-      LOG_BUILD            TRUE
-      DEPENDS pre_cubridmanager ${CMS_DEPENDS}
-      SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cubridmanager/server
-      CONFIGURE_COMMAND sh <SOURCE_DIR>/autogen.sh
-      COMMAND sh <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --with-cubrid-libdir=<TMP_DIR> --with-cubrid-includedir=<TMP_DIR> ${CMS_CONFIGURE_OPTS}
-      BUILD_COMMAND make all AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=:
-      INSTALL_COMMAND make install AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=:
-      )
-  else(UNIX)
-    set(CMS_DEPENDS cascci cmstat cmdep)
-    externalproject_add(cubridmanager
-      DEPENDS pre_cubridmanager ${CMS_DEPENDS}
-      LOG_CONFIGURE        TRUE
-      LOG_BUILD            TRUE
-      SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cubridmanager/server
-      CONFIGURE_COMMAND ""
-      BUILD_COMMAND cmd /c build.bat --prefix <INSTALL_DIR> --with-cubrid-libdir <TMP_DIR> --with-cubrid-includedir <TMP_DIR> ${CMS_CONFIGURE_OPTS}
-      INSTALL_COMMAND ""
-      BUILD_IN_SOURCE 1
-      )
-  endif(UNIX)
-  externalproject_get_property(cubridmanager TMP_DIR)
-  foreach(required_target ${CMS_DEPENDS})
-    add_custom_command(TARGET pre_cubridmanager PRE_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_LINKER_FILE:${required_target}> ${TMP_DIR})
-  endforeach(required_target)
-  foreach(required_header ${CCI_PUBLIC_HEADERS} ${CMDEP_PUBLIC_HEADERS} ${CMSTAT_PUBLIC_HEADERS})
-    add_custom_command(TARGET pre_cubridmanager PRE_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy ${required_header} ${TMP_DIR})
-  endforeach(required_header)
-
-  externalproject_get_property(cubridmanager INSTALL_DIR)
-  install(DIRECTORY ${INSTALL_DIR}/
-    DESTINATION ${CUBRID_PREFIXDIR} COMPONENT Manager
-    USE_SOURCE_PERMISSIONS)
-endif(WITH_CCI AND WITH_CMSERVER AND EXISTS ${CMAKE_SOURCE_DIR}/cubridmanager/server)
+add_subdirectory(contrib)
 
 # create empty directories
 install(DIRECTORY DESTINATION ${CUBRID_LOGDIR})
 install(DIRECTORY DESTINATION ${CUBRID_VARDIR})
 install(DIRECTORY DESTINATION ${CUBRID_TMPDIR})
-install(DIRECTORY DESTINATION ${CUBRID_DATABASES})
 install(DIRECTORY DESTINATION "${CUBRID_VARDIR}/${CUBRID_SOCK}")
 if(USE_CUBRID_ENV)
   install(FILES
@@ -852,10 +685,6 @@ if(USE_CUBRID_ENV)
 #    ${CMAKE_SOURCE_DIR}/README
     ${CMAKE_SOURCE_DIR}/contrib/readme/README_TAR_INSTALL
     DESTINATION ${CUBRID_PREFIXDIR})
-# on Windows, databases.txt is create from 'make_cubrid_demo.bat' because databases.txt is deleted in MSI file for install.
-  install(FILES
-    ${CMAKE_SOURCE_DIR}/contrib/readme/databases.txt.sample
-    DESTINATION ${CUBRID_DATABASES})
   install(FILES
     ${CMAKE_SOURCE_DIR}/contrib/readme/README_SOCK.txt
     DESTINATION ${CUBRID_VARDIR}/${CUBRID_SOCK}
@@ -868,9 +697,6 @@ endif(USE_CUBRID_ENV)
 
 if(WITH_SOURCES)
   install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/ DESTINATION ${CUBRID_SRCDIR})
-  if(WITH_CCI)
-    install(DIRECTORY ${CMAKE_SOURCE_DIR}/cubrid-cci/src/ DESTINATION ${CUBRID_SRCDIR})
-  endif(WITH_CCI)
 endif(WITH_SOURCES)
 
 # for packaging
@@ -880,17 +706,6 @@ if(UNIX)
 else(UNIX)
   set(CPACK_GENERATOR "ZIP")
 endif(UNIX)
-
-if(WITH_CCI)
-  if(EXISTS ${CMAKE_SOURCE_DIR}/cubrid-cci/CCI-VERSION-DIST)
-    set(VERSION_FILE ${CMAKE_SOURCE_DIR}/cubrid-cci/CCI-VERSION-DIST)
-    file(STRINGS ${VERSION_FILE} CCI_VERSION)
-  else(EXISTS ${CMAKE_SOURCE_DIR}/cubrid-cci/CCI-VERSION-DIST)
-    message(WARRING "Could not find a CCI VERSION file")
-    set(CCI_VERSION "0.0.0.0000")
-  endif(EXISTS ${CMAKE_SOURCE_DIR}/cubrid-cci/CCI-VERSION-DIST)
-message(STATUS "Get version information CCI_VERSION: ${CCI_VERSION}")
-endif(WITH_CCI)
 
 set(CPACK_PACKAGE_NAME "${PROJECT_NAME}")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "CUBRID Open Source RDBMS")
@@ -914,10 +729,8 @@ else(CMAKE_BUILD_TYPE MATCHES "Debug")
 endif(CMAKE_BUILD_TYPE MATCHES "Debug")
 if(WIN32)
   set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${CMAKE_SYSTEM_NAME}-x64-${CUBRID_VERSION}${CUBRID_PACKAGE_FILE_SUFFIX}")
-  set(CCI_PACKAGE_FILE_NAME "${PROJECT_NAME}-CCI-${CMAKE_SYSTEM_NAME}-x64-${CCI_VERSION}${CUBRID_PACKAGE_FILE_SUFFIX}")
 else(WIN32)
   set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${CUBRID_VERSION}-${CMAKE_SYSTEM_NAME}.${CMAKE_HOST_SYSTEM_PROCESSOR}${CUBRID_PACKAGE_FILE_SUFFIX}")
-  set(CCI_PACKAGE_FILE_NAME "${PROJECT_NAME}-CCI-${CCI_VERSION}-${CMAKE_SYSTEM_NAME}.${CMAKE_HOST_SYSTEM_PROCESSOR}${CUBRID_PACKAGE_FILE_SUFFIX}")
 endif(WIN32)
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${PROJECT_NAME}-${CUBRID_VERSION}-src")
 

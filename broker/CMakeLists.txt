@@ -1,6 +1,5 @@
 #
-#  Copyright 2008 Search Solution Corporation
-#  Copyright 2016 CUBRID Corporation
+#  Copyright 2024 CUBRID Corporation
 # 
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -150,7 +149,7 @@ target_include_directories(api_cas PRIVATE ${S62_DIR})
 find_library (
   S62LIB
   NAMES libtbgpp-api-server-shared.so
-  HINTS /turbograph-v3/turbograph-v3/build/tbgpp-api-server
+  HINTS ${S62_LIB_DIR}
   REQUIRED)
 
 target_link_libraries(api_cas ${S62LIB})
@@ -189,14 +188,8 @@ install(TARGETS
   PUBLIC_HEADER DESTINATION ${CUBRID_INCLUDEDIR} COMPONENT Header
   )
 
+install(PROGRAMS
+    ${S62_API_SERVER_LIB}
+    DESTINATION ${CUBRID_LIBDIR})
 
-# TODO: compat uc script?
 
-# install pdb files for debugging on windows
-if(WIN32)
-  install(DIRECTORY
-    ${CMAKE_CURRENT_BINARY_DIR}/\${CMAKE_INSTALL_CONFIG_NAME}/
-    DESTINATION ${CUBRID_BINDIR} COMPONENT Debuginfo
-    FILES_MATCHING PATTERN "*.pdb"
-    )
-endif(WIN32)
