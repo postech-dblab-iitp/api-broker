@@ -9,15 +9,24 @@ Because we need the tbgpp-api-server library (libtbgpp-api-server-shared.so).
 Please refer to the TurboGraph repository for installing and building Docker.
 
 - TurboGraph++ Repository - https://github.com/postech-dblab-iitp/turbograph-v3
+- Docker Container For Turbograph++ (Based on Ubuntu)
 
 ### How to Build API Broker
 
 1. Download turbograph++ Source And Build.
 
-2. Build api-broker After TurboGraph++ Build
+2. The following package installation is required.
+ - systemtap-sdt-dev
+ - zip
+```
+example) apt install systemtap-sdt-dev
+```
+
+3. Build api-broker After TurboGraph++ Build
 ```
 cd turbograph-v3
 git clone git@github.com:postech-dblab-iitp/api-broker.git
+cd api-broker
 ./build.sh 
 ```
 
@@ -31,8 +40,11 @@ sh API-BROKER-1.0.0.0022-0b9a9e0-Linux.x86_64.sh
 ```
 
 2. Use tar.gz
-https://github.com/hwany7seo/iitp-api-broker/blob/packaging_readme/contrib/readme/README_TAR_INSTALL
+Please refer to the files below when installing.
 
+https://github.com/hwany7seo/iitp-api-broker/blob/packaging_readme/contrib/readme/README_TAR_INSTALL
+Or
+README_TAR_INSTALL in tar.gz
 
 ### How to Setup Database
 Edit the 'data/databases.txt' files in the folder where API Broker is installed. 
