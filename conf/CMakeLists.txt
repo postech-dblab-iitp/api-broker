@@ -19,4 +19,4 @@
 file(GLOB conf_files "${CMAKE_SOURCE_DIR}/conf/api_broker.conf")
 
 install(FILES ${conf_files} 
-  DESTINATION ${CUBRID_CONFDIR})
+  DESTINATION ${API_BROKER_CONFDIR})

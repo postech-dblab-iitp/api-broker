@@ -19,5 +19,5 @@ if(UNIX)
     ${CMAKE_SOURCE_DIR}/contrib/scripts/api-broker.sh
     ${CMAKE_SOURCE_DIR}/contrib/scripts/api-broker.csh
     ${CMAKE_SOURCE_DIR}/contrib/scripts/setup.sh
-    DESTINATION ${CUBRID_DATADIR}/scripts/)
+    DESTINATION ${API_BROKER_DATADIR}/scripts/)
 endif(UNIX)

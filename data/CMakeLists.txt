@@ -19,4 +19,4 @@
 file(GLOB conf_files "${CMAKE_SOURCE_DIR}/data/databases.txt")
 
 install(FILES ${conf_files} 
-  DESTINATION ${CUBRID_DATABASE_CONFDIR})
+  DESTINATION ${API_BROKER_DATABASE_CONFDIR})

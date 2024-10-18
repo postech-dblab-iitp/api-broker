@@ -208,8 +208,6 @@ function build_configure ()
       configure_options="$configure_options -DCMAKE_BUILD_TYPE=RelWithDebInfo" ;;
     debug)
       configure_options="$configure_options -DCMAKE_BUILD_TYPE=Debug" ;;
-    coverage)
-      configure_options="$configure_options -DCMAKE_BUILD_TYPE=Coverage" ;;
     profile)
       configure_options="$configure_options -DCMAKE_BUILD_TYPE=Profile" ;;
     *)

@@ -1,6 +1,6 @@
 #
 #
-#  Copyright 2016 CUBRID Corporation
+#  Copyright 2024 CUBRID Corporation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -24,13 +24,13 @@ if [ $# -ne 0 ];then
     exit
   fi
 
-  cubrid_home=$(pwd)
+  api_broker_home=$(pwd)
   cd $curr
 else
-  cubrid_home=$(pwd)
+  api_broker_home=$(pwd)
 fi
 
-echo "Is the API Broker installed in "$cubrid_home" ? [Yn]:"
+echo "Is the API Broker installed in "$api_broker_home" ? [Yn]:"
 
 read line leftover
 is_installed_dir=TRUE
@@ -45,29 +45,29 @@ if [ "x${is_installed_dir}x" = "xFALSEx" ];then
   echo "Please enter the directory where API Broker is installed: "
 
   read input_dir leftover
-  cubrid_home=${input_dir}
+  api_broker_home=${input_dir}
 fi
 
-if [ ! -d $cubrid_home ];then
-  echo "$cubrid_home: no such directory"
+if [ ! -d $api_broker_home ];then
+  echo "$api_broker_home: no such directory"
   exit
 fi
 
 # environment variables for *csh
-cubrid_csh_envfile="$HOME/.api-broker.csh"
-cp ${cubrid_home}/share/scripts/api-broker.csh ${cubrid_csh_envfile}_temp
-sed -i '/setenv API /d' ${cubrid_csh_envfile}_temp
-sed -i "/API_DATABASES/isetenv API $cubrid_home" ${cubrid_csh_envfile}_temp
+api_broker_csh_envfile="$HOME/.api-broker.csh"
+cp ${api_broker_home}/share/scripts/api-broker.csh ${api_broker_csh_envfile}_temp
+sed -i '/setenv API /d' ${api_broker_csh_envfile}_temp
+sed -i "/API_DATABASES/isetenv API $api_broker_home" ${api_broker_csh_envfile}_temp
 
 # environment variables for *sh
-cubrid_sh_envfile="$HOME/.api-broker.sh"
-cp ${cubrid_home}/share/scripts/api-broker.sh ${cubrid_sh_envfile}_temp
-sed -i "/API=/d" ${cubrid_sh_envfile}_temp
-sed -i "/API_DATABASE/iexport API=$cubrid_home" ${cubrid_sh_envfile}_temp
+api_broker_sh_envfile="$HOME/.api-broker.sh"
+cp ${api_broker_home}/share/scripts/api-broker.sh ${api_broker_sh_envfile}_temp
+sed -i "/API=/d" ${api_broker_sh_envfile}_temp
+sed -i "/API_DATABASE/iexport API=$api_broker_home" ${api_broker_sh_envfile}_temp
 
 # environment variables for *sh
 echo ""
-for e in "$cubrid_csh_envfile" "$cubrid_sh_envfile"; do
+for e in "$api_broker_csh_envfile" "$api_broker_sh_envfile"; do
   if [ -r "${e}" ]; then
     echo "Copying old ${e} to ${e}.bak ..."
     mv -f "${e}" "${e}.bak"
@@ -77,7 +77,7 @@ done
 
 # append script for executing .cubrid.sh to .bash_profile
 PRODUCT_NAME="API-BROKER"
-CUBRID_SH_INSTALLED=1
+API_BROKER_SH_INSTALLED=1
 if [ -z "$SHELL" ];then
    if [ ! -r /etc/passwd ];then
       user_sh="bash"
@@ -109,7 +109,7 @@ case $user_sh in
 		# if $sh_profile is null install script will stop following grep
 		echo "$user_sh: unknown SHELL, force set to /bin/bash"
 		sh_profile=$HOME/.bash_profile
-		CUBRID_SH_INSTALLED=0
+		API_BROKER_SH_INSTALLED=0
 		;;
 esac
 
@@ -123,7 +123,7 @@ append_profile=$(grep "${PRODUCT_NAME} environment" $sh_profile)
 if [ -z "$append_profile" ];then
   echo '#-------------------------------------------------------------------------------' >> $sh_profile
   if [ $? -ne 0 ];then
-    CUBRID_SH_INSTALLED=0
+    API_BROKER_SH_INSTALLED=0
     echo "Please check your permission for file $sh_profile"
   else
     echo '# set '${PRODUCT_NAME}' environment variables'                                    >> $sh_profile
@@ -146,28 +146,28 @@ if [ -z "$append_profile" ];then
         echo 'fi'                                                                           >> $sh_profile
         ;;
       *)
-        CUBRID_SH_INSTALLED=0
+        API_BROKER_SH_INSTALLED=0
         ;;
     esac
   fi	# $? - ne 0
 fi	# -z "$append_profile"
 
-if [ $CUBRID_SH_INSTALLED -eq 1 ] && [ $bash_exist -eq 0 ];then
+if [ $API_BROKER_SH_INSTALLED -eq 1 ] && [ $bash_exist -eq 0 ];then
   echo "Notification: $sh_profile is created"
 fi
 
 echo ""
 echo "If you want to use API Broker, run the following command to set required environment variables."
-if [ $CUBRID_SH_INSTALLED -eq 0 ];then
+if [ $API_BROKER_SH_INSTALLED -eq 0 ];then
         echo "(or you can add the command into your current shell profile file to set permanently)"
         exit
 fi
 case "$SHELL" in
   */csh | */tcsh )
-    echo "  $ source $cubrid_csh_envfile"
+    echo "  $ source $api_broker_csh_envfile"
     ;;
   *)
-    echo "  $ . $cubrid_sh_envfile"
+    echo "  $ . $api_broker_sh_envfile"
     ;;
 esac
 echo ""

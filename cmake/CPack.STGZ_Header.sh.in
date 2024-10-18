@@ -151,17 +151,17 @@ echo "Unpacking finished successfully"
 #
 
 # environment variables for *csh
-cubrid_csh_envfile="$HOME/.api-broker.csh"
-cp ${toplevel}/share/scripts/api-broker.csh ${cubrid_csh_envfile}-@CPACK_PACKAGE_VERSION@
-sed -i '/setenv API /d' ${cubrid_csh_envfile}-@CPACK_PACKAGE_VERSION@
-sed -i "/API_DATABASES/isetenv CUBRID $toplevel" ${cubrid_csh_envfile}-@CPACK_PACKAGE_VERSION@
+api_broker_csh_envfile="$HOME/.api-broker.csh"
+cp ${toplevel}/share/scripts/api-broker.csh ${api_broker_csh_envfile}-@CPACK_PACKAGE_VERSION@
+sed -i '/setenv API /d' ${api_broker_csh_envfile}-@CPACK_PACKAGE_VERSION@
+sed -i "/API_DATABASES/isetenv CUBRID $toplevel" ${api_broker_csh_envfile}-@CPACK_PACKAGE_VERSION@
 # environment variables for *sh
-cubrid_sh_envfile="$HOME/.api-broker.sh"
-cp ${toplevel}/share/scripts/api-broker.sh ${cubrid_sh_envfile}-@CPACK_PACKAGE_VERSION@
-sed -i "/API=/d" ${cubrid_sh_envfile}-@CPACK_PACKAGE_VERSION@
-sed -i "/API_DATABASE/iexport API=${toplevel}" ${cubrid_sh_envfile}-@CPACK_PACKAGE_VERSION@
+api_broker_sh_envfile="$HOME/.api-broker.sh"
+cp ${toplevel}/share/scripts/api-broker.sh ${api_broker_sh_envfile}-@CPACK_PACKAGE_VERSION@
+sed -i "/API=/d" ${api_broker_sh_envfile}-@CPACK_PACKAGE_VERSION@
+sed -i "/API_DATABASE/iexport API=${toplevel}" ${api_broker_sh_envfile}-@CPACK_PACKAGE_VERSION@
 
-for e in "$cubrid_csh_envfile" "$cubrid_sh_envfile"; do
+for e in "$api_broker_csh_envfile" "$api_broker_sh_envfile"; do
   if [ -r "${e}" ]; then
     echo "Copying old ${e} to ${e}.bak ..."
     mv -f "${e}" "${e}.bak"
@@ -171,7 +171,7 @@ done
 
 # append script for executing .api-broker.sh to .bash_profile
 PRODUCT_NAME="API-BROKER"
-CUBRID_SH_INSTALLED=1
+API_BROKER_SH_INSTALLED=1
 if [ -z "$SHELL" ];then
    if [ ! -r /etc/passwd ];then
       user_sh="bash"
@@ -203,7 +203,7 @@ case $user_sh in
 		# if $sh_profile is null install script will stop following grep
 		echo "$user_sh: unknown SHELL, force set to /bin/bash"
 		sh_profile=$HOME/.bash_profile
-		CUBRID_SH_INSTALLED=0
+		API_BROKER_SH_INSTALLED=0
 		;;
 esac
 
@@ -217,7 +217,7 @@ append_profile=$(grep "${PRODUCT_NAME} environment" $sh_profile)
 if [ -z "$append_profile" ];then
   echo '#-------------------------------------------------------------------------------' >> $sh_profile
   if [ $? -ne 0 ];then
-    CUBRID_SH_INSTALLED=0
+    API_BROKER_SH_INSTALLED=0
     echo "Please check your permission for file $sh_profile"
   else
     echo '# set '${PRODUCT_NAME}' environment variables'                                    >> $sh_profile
@@ -240,30 +240,30 @@ if [ -z "$append_profile" ];then
         echo 'fi'                                                                           >> $sh_profile
         ;;
       *)
-        CUBRID_SH_INSTALLED=0
+        API_BROKER_SH_INSTALLED=0
         ;;
     esac
   fi	# $? - ne 0
 fi	# -z "$append_profile"
 
-if [ $CUBRID_SH_INSTALLED -eq 1 ] && [ $bash_exist -eq 0 ];then
+if [ $API_BROKER_SH_INSTALLED -eq 1 ] && [ $bash_exist -eq 0 ];then
   echo "Notification: $sh_profile is created"
 fi
 
 echo ""
 echo "If you want to use CUBRID, run the following command to set required environment variables."
-if [ $CUBRID_SH_INSTALLED -eq 0 ];then
+if [ $API_BROKER_SH_INSTALLED -eq 0 ];then
 	echo "(or you can add the command into your current shell profile file to set permanently)"
 fi
 case "$SHELL" in
   */csh | */tcsh)
-    echo "  $ source $cubrid_csh_envfile"
+    echo "  $ source $api_broker_csh_envfile"
     ;;
   */zsh)
-    echo "  $ source $cubrid_sh_envfile"
+    echo "  $ source $api_broker_sh_envfile"
     ;;
   *)
-    echo "  $ . $cubrid_sh_envfile"
+    echo "  $ . $api_broker_sh_envfile"
     ;;
 esac
 echo ""
