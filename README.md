@@ -1,28 +1,32 @@
-# API Broker
-API-Broker for TurboGraph JDBC driver 
+[![English](
+https://img.shields.io/badge/language-English-orange.svg)](README_EN.md)
+[![Korean](
+https://img.shields.io/badge/language-Korean-blue.svg)](README.md)
+
+## API-Broker for TurboGraph JDBC driver 
 
 ## Build from Source
 ### Build Requirements
-Docker must be configured and deployed using the TurboGraph++ repository.
-And TurboGraph++ must be built.
-Because we need the tbgpp-api-server library (libtbgpp-api-server-shared.so).
-Please refer to the TurboGraph repository for installing and building Docker.
 
-- TurboGraph++ Repository - https://github.com/postech-dblab-iitp/turbograph-v3
-- Docker Container For Turbograph++ (Based on Ubuntu)
+- TurboGraph++ 저장소를 이용하여 도커를 구성해야 합니다.
+- 그리고 TurboGraph++를 빌드 해야합니다.
+- 왜냐하면 tbgpp-api-server library가 필요하기 때문입니다. (libtbgpp-api-server-shared.so).
+- Docker 설치 및 빌드에 대해서는 TurboGraph++ 저장소를 참고하세요. 
+- TurboGraph++ 저장소 - https://github.com/postech-dblab-iitp/turbograph-v3
+- 도커 컨테이너는 Ubuntu를 베이스로 되어 있습니다.
 
 ### How to Build API Broker
 
-1. Download turbograph++ Source And Build.
+1. Turbograph++ 소스를 다운 받아 빌드 합니다.
 
-2. The following package installation is required.
+2. API-Broker는 아래와 같은 패키지가 필요합니다.
  - systemtap-sdt-dev
  - zip
 ```
 example) apt install systemtap-sdt-dev
 ```
 
-3. Build api-broker After TurboGraph++ Build
+3. TurboGraph++를 빌드한 후에 API-Broker를 빌드합니다.
 ```
 cd turbograph-v3
 git clone git@github.com:postech-dblab-iitp/api-broker.git
@@ -30,52 +34,53 @@ cd api-broker
 ./build.sh 
 ```
 
-## Install And Use
-### How to Install
-Support the following methods:
+## 설치 및 사용
+### 설치 방법
+아래와 같이 2가지 방식을 지원합니다.
 
-1. Use Shell
+1. Shell 파일을 사용
 ```
 sh API-BROKER-1.0.0.0022-0b9a9e0-Linux.x86_64.sh
 ```
 
-2. Use tar.gz
-Please refer to the files below when installing.
+2. tar.gz를 사용
+아래 파일을 참고하여 설치 하세요.
 
 https://github.com/hwany7seo/iitp-api-broker/blob/packaging_readme/contrib/readme/README_TAR_INSTALL
 Or
 README_TAR_INSTALL in tar.gz
 
-### How to Setup Database
-Edit the 'data/databases.txt' files in the folder where API Broker is installed. 
-If you add the example below, you can access the databases named tpch_sf1 and gdbdemo through jdbc.
+### 데이터베이스 설정
+API Broker가 설치된 폴더에 'data/databases.txt'을 수정해야합니다.
+아래 예제와 같이 추가하면 JDBC를 통해 tpch_sf1 과 gdbdemo 데이터베이스에 접근 할 수 있습니다.
 ```
 tpch_sf1       /data/tpch/sf1
 gdbdemo        /data/gdbdemo
 ```
-If a database is added, the API broker must be restarted.
+데이터베이스가 추가되면 API Broker를 재시작 해야합니다.
 
-### How to Execute
-- Start
+### 실행 방법
+- 시작
 ```
 brokerutil start
 ```
-- Stop
+- 중지
 ```
 brokerutil stop
 ```
-- Restart
+- 재시작
 ```
 brokerutil restart <broker-name> <appl_server_index>
 ```
-- Status
+- 상태확인
 ```
 broker_monitor
 ```
 
-### Setup to API Broker
-Settings for 'API-Broker' can be made through the 'conf/api_broker.conf' file.
-The example below uses two API Brokers for query_editor and BROKER1.
+### API Broker 설정
+'conf/api_broker.conf' 파일을 통해 API Broker를 설정할 수 있씁니다.
+아래는 query_editor와 BROKER1을 사용한 예제입니다.
+
 ```
 [api_broker]
 MASTER_SHM_ID           =30001
@@ -114,18 +119,15 @@ KEEP_CONNECTION         =AUTO
 
 This is a description of the main key parameters.
 ```
-SERVICE : Turn API Broker on or off.
+SERVICE : API Broker를 on 또는 off 
 
-BROKER_PORT : Port number to be used by the broker.
+BROKER_PORT : Broker에서 사용하는 포트 번호
 
-MIN_NUM_APPL_SERVER = Even if there is no connection request, 
-the number of waiting processes is basically the minimum.
+MIN_NUM_APPL_SERVER = 연결 요청이 없더라도 대기하는 기본적인 최소 프로세스 개수입니다. 
 
-MAX_NUM_APPL_SERVER = The maximum process value that can be connected simultaneously.
+MAX_NUM_APPL_SERVER = 동사에 연결 할 수 있는 최대 프로세스 값입니다.
 
-APPL_SERVER_MAX_SIZE = This parameter specifies the maximum size of process memory usage processed by API Broker. 
-Units such as B, K, M, and G can be added to the value, 
-meaning Bytes, Kilobytes, Megabytes, and Gigabytes, respectively. 
-If the unit is omitted, it is designated as M.
-Adjust the value according to the storage size in TurboGraph.
+APPL_SERVER_MAX_SIZE = CAS가 처리하는 프로세스 메모리 사용량의 최대 크기를 지정하는 파라미터이다.
+ 값 뒤에 B, K, M, G로 단위를 붙일 수 있으며, 각각 Bytes, Kilobytes, Megabytes, Gigabytes를 의미한다. 단위 생략 시 M으로 지정된다.
+TurboGraph++ 저장소에 크기에 따라 값을 조정해야합니다.
 ```
