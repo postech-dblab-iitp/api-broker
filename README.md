@@ -44,11 +44,14 @@ sh API-BROKER-1.0.0.0022-0b9a9e0-Linux.x86_64.sh
 ```
 
 2. tar.gz를 사용
+
 아래 파일을 참고하여 설치 하세요.
 
 https://github.com/hwany7seo/iitp-api-broker/blob/packaging_readme/contrib/readme/README_TAR_INSTALL
-Or
-README_TAR_INSTALL in tar.gz
+
+또는
+
+tar.gz 안에 README_TAR_INSTALL를 참고하세요.
 
 ### 데이터베이스 설정
 API Broker가 설치된 폴더에 'data/databases.txt'을 수정해야합니다.
@@ -117,7 +120,7 @@ SESSION_TIMEOUT         =300
 KEEP_CONNECTION         =AUTO
 ```
 
-This is a description of the main key parameters.
+아래 설명은 주로 변경하는 파라미터 정보입니다.
 ```
 SERVICE : API Broker를 on 또는 off 
 
