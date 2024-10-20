@@ -133,3 +133,13 @@ meaning Bytes, Kilobytes, Megabytes, and Gigabytes, respectively.
 If the unit is omitted, it is designated as M.
 Adjust the value according to the storage size in TurboGraph++.
 ```
+
+## License
+
+- Apache license 2.0
+
+## Get Help
+
+http://jira.iitp.cubrid.org/secure/Dashboard.jspa
+
+If you have any bugs, improvements, or questions, you can receive support by leaving a comment in the jira above.

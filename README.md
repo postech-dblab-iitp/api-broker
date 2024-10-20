@@ -3,10 +3,10 @@ https://img.shields.io/badge/language-English-orange.svg)](README_EN.md)
 [![Korean](
 https://img.shields.io/badge/language-Korean-blue.svg)](README.md)
 
-## API-Broker for TurboGraph JDBC driver 
+## TurboGraph JDBC driver 위한 API-Broker
 
-## Build from Source
-### Build Requirements
+## 소스로 부터 빌드하기
+### 빌드 요구사항
 
 - TurboGraph++ 저장소를 이용하여 도커를 구성해야 합니다.
 - 그리고 TurboGraph++를 빌드 해야합니다.
@@ -15,7 +15,7 @@ https://img.shields.io/badge/language-Korean-blue.svg)](README.md)
 - TurboGraph++ 저장소 - https://github.com/postech-dblab-iitp/turbograph-v3
 - 도커 컨테이너는 Ubuntu를 베이스로 되어 있습니다.
 
-### How to Build API Broker
+### 빌드 실행 방법
 
 1. Turbograph++ 소스를 다운 받아 빌드 합니다.
 
@@ -131,3 +131,13 @@ APPL_SERVER_MAX_SIZE = CAS가 처리하는 프로세스 메모리 사용량의 �
  값 뒤에 B, K, M, G로 단위를 붙일 수 있으며, 각각 Bytes, Kilobytes, Megabytes, Gigabytes를 의미한다. 단위 생략 시 M으로 지정된다.
 TurboGraph++ 저장소에 크기에 따라 값을 조정해야합니다.
 ```
+
+## 라이센스
+
+- Apache license 2.0
+
+## 도움 받기
+
+http://jira.iitp.cubrid.org/secure/Dashboard.jspa
+
+버그, 개선 사항, 질문이 있는 경우 위 jira에 내용을 남기면 지원을 받을 수 있다.
