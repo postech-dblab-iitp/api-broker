@@ -69,7 +69,7 @@ https://github.com/hwany7seo/iitp-api-broker/blob/packaging_readme/contrib/readm
 tar.gz 안에 README_TAR_INSTALL를 참고하세요.
 
 ### 데이터베이스 설정
-API Broker가 설치된 폴더에 'data/databases.txt'을 수정해야합니다.
+API Broker가 설치된 폴더에 'data/databases.txt'을 수정해야 합니다.
 아래 예제와 같이 추가하면 JDBC를 통해 tpch_sf1 과 gdbdemo 데이터베이스에 접근 할 수 있습니다.
 ```
 tpch_sf1       /data/tpch/sf1
@@ -143,8 +143,8 @@ MIN_NUM_APPL_SERVER = 연결 요청이 없더라도 대기하는 기본적인 �
 
 MAX_NUM_APPL_SERVER = 동사에 연결 할 수 있는 최대 프로세스 값입니다.
 
-APPL_SERVER_MAX_SIZE = CAS가 처리하는 프로세스 메모리 사용량의 최대 크기를 지정하는 파라미터이다.
- 값 뒤에 B, K, M, G로 단위를 붙일 수 있으며, 각각 Bytes, Kilobytes, Megabytes, Gigabytes를 의미한다. 단위 생략 시 M으로 지정된다.
+APPL_SERVER_MAX_SIZE = CAS가 처리하는 프로세스 메모리 사용량의 최대 크기를 지정하는 파라미터입니다.
+ 값 뒤에 B, K, M, G로 단위를 붙일 수 있으며, 각각 Bytes, Kilobytes, Megabytes, Gigabytes를 의미한다. 단위 생략 시 M으로 지정됩니다.
 TurboGraph++ 저장소에 크기에 따라 값을 조정해야합니다.
 ```
 
@@ -156,4 +156,4 @@ TurboGraph++ 저장소에 크기에 따라 값을 조정해야합니다.
 
 http://jira.iitp.cubrid.org/secure/Dashboard.jspa
 
-버그, 개선 사항, 질문이 있는 경우 위 jira에 내용을 남기면 지원을 받을 수 있다.
+버그, 개선 사항, 질문이 있는 경우 위 jira에 내용을 남기면 지원을 받을 수 있습니다.
