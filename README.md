@@ -22,6 +22,7 @@ docker build . -t turbograph-image
 
 1. Turbograph++ 소스를 다운 받아 빌드 합니다.
 ```
+cd /
 git clone https://github.com/postech-dblab-iitp/turbograph-v3.git
 cd /turbograph-v3
 git checkout main
