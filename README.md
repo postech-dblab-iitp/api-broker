@@ -41,7 +41,7 @@ apt install systemtap-sdt-dev
 apt install zip
 ```
 
-3. API Broker 소스를 다운 받아 빌드합니다.
+3. Turbograph++ 소스 위치로 이동하여 API Broker 소스를 다운 받아 빌드합니다.
 ```
 cd turbograph-v3
 git clone git@github.com:postech-dblab-iitp/api-broker.git
