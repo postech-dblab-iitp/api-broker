@@ -75,7 +75,7 @@ for e in "$api_broker_csh_envfile" "$api_broker_sh_envfile"; do
   mv "${e}_temp" "${e}"
 done
 
-# append script for executing .cubrid.sh to .bash_profile
+# append script for executing .api-broker.sh to .bash_profile
 PRODUCT_NAME="API-BROKER"
 API_BROKER_SH_INSTALLED=1
 if [ -z "$SHELL" ];then

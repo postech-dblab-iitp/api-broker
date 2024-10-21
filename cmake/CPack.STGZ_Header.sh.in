@@ -118,16 +118,15 @@ fi
 echo
 echo "Using target directory: ${toplevel}"
 
-# Notice for CUBRID
+# Notice
 echo ""
-echo "Since api broker and server versions should match, please make sure that you are running the same version if you operate them in separate machines."
 echo "Do you want to continue? [Yn] : "
 read line leftover
 case ${line} in
   n* | N*)
     exit 1;;
 esac
-# Notice for CUBRID
+# Notice
 
 echo "Extracting, please wait..."
 echo ""
@@ -147,14 +146,14 @@ tail $use_new_tail_syntax +###CPACK_HEADER_LENGTH### "$0" | gunzip | (cd "${topl
 echo "Unpacking finished successfully"
 
 #
-# post-setup for CUBRID
+# post-setup
 #
 
 # environment variables for *csh
 api_broker_csh_envfile="$HOME/.api-broker.csh"
 cp ${toplevel}/share/scripts/api-broker.csh ${api_broker_csh_envfile}-@CPACK_PACKAGE_VERSION@
 sed -i '/setenv API /d' ${api_broker_csh_envfile}-@CPACK_PACKAGE_VERSION@
-sed -i "/API_DATABASES/isetenv CUBRID $toplevel" ${api_broker_csh_envfile}-@CPACK_PACKAGE_VERSION@
+sed -i "/API_DATABASES/isetenv API $toplevel" ${api_broker_csh_envfile}-@CPACK_PACKAGE_VERSION@
 # environment variables for *sh
 api_broker_sh_envfile="$HOME/.api-broker.sh"
 cp ${toplevel}/share/scripts/api-broker.sh ${api_broker_sh_envfile}-@CPACK_PACKAGE_VERSION@
@@ -251,7 +250,7 @@ if [ $API_BROKER_SH_INSTALLED -eq 1 ] && [ $bash_exist -eq 0 ];then
 fi
 
 echo ""
-echo "If you want to use CUBRID, run the following command to set required environment variables."
+echo "If you want to use API Broker, run the following command to set required environment variables."
 if [ $API_BROKER_SH_INSTALLED -eq 0 ];then
 	echo "(or you can add the command into your current shell profile file to set permanently)"
 fi

@@ -8,25 +8,40 @@ https://img.shields.io/badge/language-Korean-blue.svg)](README.md)
 ## 소스로 부터 빌드하기
 ### 빌드 요구사항
 
-- TurboGraph++ 저장소를 이용하여 도커를 구성해야 합니다.
-- 그리고 TurboGraph++를 빌드 해야합니다.
-- 왜냐하면 tbgpp-api-server library가 필요하기 때문입니다. (libtbgpp-api-server-shared.so).
-- Docker 설치 및 빌드에 대해서는 TurboGraph++ 저장소를 참고하세요. 
-- TurboGraph++ 저장소 - https://github.com/postech-dblab-iitp/turbograph-v3
-- 도커 컨테이너는 Ubuntu를 베이스로 되어 있습니다.
-
+- TurboGraph++ library를 사용해야 하므로 TubroGraph++를 빌드할 수 있는 docker container를 기반으로 구성해야 합니다.
+- Docker 설치 및 빌드에 대해서는 TurboGraph++ 저장소(https://github.com/postech-dblab-iitp/turbograph-v3)를 참고하세요. (제공되는 docker container는 ubuntu OS기반입니다.)
+```
+git clone https://github.com/postech-dblab-iitp/turbograph-v3.git
+cd turbograph-v3
+git checkout remotes/origin/main
+cd docker
+docker build . -t turbograph-image
+./run-docker-example.sh <database folder> <source data folder>
+```
 ### 빌드 실행 방법
 
 1. Turbograph++ 소스를 다운 받아 빌드 합니다.
-
-2. API-Broker는 아래와 같은 패키지가 필요합니다.
+```
+git clone https://github.com/postech-dblab-iitp/turbograph-v3.git
+cd /turbograph-v3
+git checkout main
+cd tbgpp-common/third_party/velox
+./scripts/setup-ubuntu.sh
+cd /turbograph-v3
+mkdir build
+cd build/
+cmake -GNinja -DCMAKE_BUILD_TYPE=Debug ..
+ninja
+```
+2. API-Broker 빌드를 위해 아래와 같은 패키지 설치가 필요합니다.
  - systemtap-sdt-dev
  - zip
 ```
-example) apt install systemtap-sdt-dev
+apt install systemtap-sdt-dev
+apt install zip
 ```
 
-3. TurboGraph++를 빌드한 후에 API-Broker를 빌드합니다.
+3. API Broker 소스를 다운 받아 빌드합니다.
 ```
 cd turbograph-v3
 git clone git@github.com:postech-dblab-iitp/api-broker.git
@@ -60,8 +75,6 @@ API Broker가 설치된 폴더에 'data/databases.txt'을 수정해야합니다.
 tpch_sf1       /data/tpch/sf1
 gdbdemo        /data/gdbdemo
 ```
-데이터베이스가 추가되면 API Broker를 재시작 해야합니다.
-
 ### 실행 방법
 - 시작
 ```
@@ -81,7 +94,7 @@ broker_monitor
 ```
 
 ### API Broker 설정
-'conf/api_broker.conf' 파일을 통해 API Broker를 설정할 수 있씁니다.
+'conf/api_broker.conf' 파일을 통해 API Broker를 설정할 수 있습니다.
 아래는 query_editor와 BROKER1을 사용한 예제입니다.
 
 ```

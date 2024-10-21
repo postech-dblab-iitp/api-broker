@@ -551,10 +551,10 @@ if(USE_API_BROKER_ENV)
   set(API_BROKER_DATABASES databases)
   set(API_BROKER_SOCK API_BROKER_SOCK)
 else(USE_API_BROKER_ENV)
-  message(WARNING "This build does not use CUBRID environment variables")
-  list(APPEND COMMON_DEFS DO_NOT_USE_CUBRIDENV)
+  message(WARNING "This build does not use API BROKER environment variables")
+  list(APPEND COMMON_DEFS DO_NOT_USE_APIBROKERENV)
 
-  set(API_BROKER_PREFIXDIR ${CMAKE_INSTALL_PREFIX} CACHE STRING "The prefix directory for CUBRID (default: ${CMAKE_INSTALL_PREFIX}")
+  set(API_BROKER_PREFIXDIR ${CMAKE_INSTALL_PREFIX} CACHE STRING "The prefix directory for API BROKER (default: ${CMAKE_INSTALL_PREFIX}")
   list(APPEND DIR_DEFS API_BROKER_PREFIXDIR="${API_BROKER_PREFIXDIR}")
   set(API_BROKER_BINDIR bin CACHE STRING "The directory for binary files")
   if(IS_ABSOLUTE ${API_BROKER_BINDIR})
@@ -635,25 +635,6 @@ if(WIN32)
   list(APPEND JVM_LIBS -DELAYLOAD:jvm.dll)
 endif(WIN32)
 
-if(WITH_JDBC AND EXISTS ${CMAKE_SOURCE_DIR}/cubrid-jdbc/src)
-  message("Build JDBC Driver from cubird-jdbc submodule")
-
-  set(JDBC_DIR ${CMAKE_SOURCE_DIR}/cubrid-jdbc)
-  add_subdirectory(cubrid-jdbc)
-
-  # dist JDBC
-  if(USE_API_BROKER_ENV)
-    set(API_BROKER_JDBCDIR jdbc)
-  else(USE_API_BROKER_ENV)
-    set(API_BROKER_JDBCDIR jdbc CACHE STRING "The directory for JDBC driver file")
-  endif(USE_API_BROKER_ENV)
-
-  install(DIRECTORY ${JDBC_DIR}/
-    DESTINATION ${API_BROKER_JDBCDIR} COMPONENT JDBC
-    FILES_MATCHING PATTERN "*.jar"
-  )
-endif()
-
 # include subdirectories
 add_subdirectory(broker)
 add_subdirectory(conf)
@@ -695,7 +676,7 @@ else(UNIX)
 endif(UNIX)
 
 set(CPACK_PACKAGE_NAME "${PROJECT_NAME}")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "CUBRID Open Source RDBMS")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "API BROKER Open Source ")
 set(CPACK_PACKAGE_VENDOR "CUBRID Corporation")
 set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/COPYING")
 # for WiX (txt file extension is required)

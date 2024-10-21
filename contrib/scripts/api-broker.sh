@@ -15,7 +15,7 @@
 #   limitations under the License.
 #
 
-export API=/opt/cubrid
+export API=/opt/api-broker
 export API_DATABASES=$API/data
 
 LD_LIBRARY_PATH=$API/lib:$LD_LIBRARY_PATH

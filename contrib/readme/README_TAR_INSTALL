@@ -1,11 +1,11 @@
 Guide to setup API Broker using setup.sh
 ====================================
 
-IGNORE THIS IF YOU INSTALLED CUBRID FROM THE SHELL OR RPM DISTRIBUTION.
+IGNORE THIS IF YOU INSTALLED API Broker FROM THE SHELL.
 
 ------------------
 If you try to install API Broker from a tar distribution, setup.sh can help you
-to set environment for normal CUBRID operations.
+to set environment for normal API Broker operations.
 
 Steps:
 1. Go to the directory where you untared (probably you already there)

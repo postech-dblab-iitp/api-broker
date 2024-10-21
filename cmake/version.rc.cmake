@@ -1,6 +1,5 @@
 /*
- * Copyright 2008 Search Solution Corporation
- * Copyright 2016 CUBRID Corporation
+ * Copyright 2024 CUBRID Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -40,10 +39,10 @@ BEGIN
   BEGIN
     BLOCK "040904B0"
     BEGIN
-      VALUE "CompanyName", "Search Solution Corporation"
+      VALUE "CompanyName", "CUBRID"
       VALUE "FileVersion", VER_FILEVERSION_STR
-      VALUE "LegalCopyright", "Copyright (C) 2016 Search Solution Corporation. All rights reserved."
-      VALUE "ProductName", "CUBRID"
+      VALUE "LegalCopyright", "Copyright (C) 2024 CUBRID. All rights reserved."
+      VALUE "ProductName", "API_BROKER"
       VALUE "ProductVersion", VER_PRODUCTVERSION_STR
     END
   END

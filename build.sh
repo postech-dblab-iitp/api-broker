@@ -1,7 +1,6 @@
 #!/bin/bash
 #
-#  Copyright 2008 Search Solution Corporation
-#  Copyright 2016 CUBRID Corporation
+#  Copyright 2024 CUBRID Corporation
 # 
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,7 +16,7 @@
 # 
 #
 
-# Build and package script for CUBRID
+# Build and package script for API Broker
 # Requirements
 # - Bash shell
 # - Build tool - cmake, gcc
@@ -292,10 +291,10 @@ function build_package ()
 	fi
 	# add VERSION-DIST instead of VERSION file for full version string
   if [ -d $source_dir/.git -a -f $source_dir/VERSION ]; then
-	  (cd $source_dir && echo "$version" > VERSION-DIST && ln -sfT . cubrid-$version &&
+	  (cd $source_dir && echo "$version" > VERSION-DIST && ln -sfT . apibroker-$version &&
 	    (git ls-files -o VERSION-DIST ; git ls-files ) |
-              sed -e "/^VERSION$/d" -e "s|^|cubrid-$version/|" | $archive_cmd &&
-	      rm cubrid-$version VERSION-DIST)
+              sed -e "/^VERSION$/d" -e "s|^|apibroker-$version/|" | $archive_cmd &&
+	      rm apibroker-$version VERSION-DIST)
   else
     #Only handles packaging process when build to packaging file.
     if [ "$package" = "src" ]; then
