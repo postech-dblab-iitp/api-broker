@@ -50,7 +50,7 @@ libedit.pc
 # Debug files
 *.dSYM/
 
-## CUBRID install files
+## install files
 .libs/
 broker/broker_monitor
 broker/brokerutil
@@ -97,3 +97,5 @@ javatest/*
 conf/*
 src/databases.txt
 src/test/*
+VERSION-DIST
+execution-log/

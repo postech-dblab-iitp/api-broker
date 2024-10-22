@@ -1,6 +1,5 @@
 #
-#  Copyright 2008 Search Solution Corporation
-#  Copyright 2016 CUBRID Corporation
+#  Copyright 2024 CUBRID Corporation
 # 
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,7 +16,7 @@
 #
 message(STATUS "======== CMakeLists.txt")
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.16)
 
 function(with_unit_tests res) # checks for -DUNIT_TESTS=ON or -DUNIT_TEST_???=ON
   get_cmake_property(vars VARIABLES)
@@ -33,8 +32,8 @@ endfunction(with_unit_tests)
 with_unit_tests(AT_LEAST_ONE_UNIT_TEST)
 message("    ==== with_unit_tests() = ${AT_LEAST_ONE_UNIT_TEST}")
 
-#also searches for modules onto cubrid/cmake
-# add other Find[LIBRARY].cmake scripts in cubrid/cmake
+#also searches for modules onto api-broker/cmake
+# add other Find[LIBRARY].cmake scripts in api-broker/cmake
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -42,7 +41,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type (default Debug)")
 endif()
 
-project(CUBRID)
+project(API-BROKER)
 
 #TODO: see why the lines below have no effect
 #list(APPEND CMAKE_CXX_SOURCE_FILE_EXTENSIONS "c")
@@ -71,11 +70,7 @@ message(STATUS "  CMAKE_RUNTIME_OUTPUT_DIRECTORY=${CMAKE_RUNTIME_OUTPUT_DIRECTOR
 option(ENABLE_32BIT "Build for 32-bit banaries (on 64-bit platform)" OFF)
 option(ENABLE_SYSTEMTAP "Enable dynamic tracing support using systemtap" ${ENABLE_SYSTEMTAP_DEFAULT})
 option(USE_DUMA "Use Detect Unintended Memory Access library" OFF)
-option(USE_CUBRID_ENV "Use CUBRID environment variables" ON)
-#option(WITH_JDBC "Build with JDBC driver" ON)
-#option(WITH_CMSERVER "Build with Manager server" ON)
-#option(UNIT_TESTS "Unit tests" OFF)
-#option(WITH_CCI "Build with CCI driver" ON)
+option(USE_API_BROKER_ENV "Use API BROKER environment variables" ON)
 
 # Version info
 # TODO: remove BUILD_NUMBER file and replace with VERSION file
@@ -93,28 +88,28 @@ file(STRINGS ${VERSION_FILE} VERSION_STR)
 if(VERSION_STR MATCHES "[0-9]+\\.[0-9]+\\.[0-9]+(\\.[0-9]+)?(-[a-zA-Z0-9_]+)?")
   string(REGEX MATCHALL "[0-9]+|-([A-Za-z0-9_]+)" VERSION_MATCHES ${VERSION_STR})
   list(LENGTH VERSION_MATCHES VERSION_MATCHES_LENGTH)
-  list(GET VERSION_MATCHES 0 CUBRID_MAJOR_VERSION)
-  list(GET VERSION_MATCHES 1 CUBRID_MINOR_VERSION)
-  list(GET VERSION_MATCHES 2 CUBRID_PATCH_VERSION)
+  list(GET VERSION_MATCHES 0 API_BROKER_MAJOR_VERSION)
+  list(GET VERSION_MATCHES 1 API_BROKER_MINOR_VERSION)
+  list(GET VERSION_MATCHES 2 API_BROKER_PATCH_VERSION)
 else()
   message(FATAL_ERROR "Failed to parse a version string from ${VERSION_FILE} file")
 endif()
 
 if(VERSION_MATCHES_LENGTH GREATER 3)
-  list(GET VERSION_MATCHES 3 CUBRID_EXTRA_VERSION)
+  list(GET VERSION_MATCHES 3 API_BROKER_EXTRA_VERSION)
   if(VERSION_MATCHES_LENGTH GREATER 4)
-    list(GET VERSION_MATCHES 4 CUBRID_HASH_TAG)
+    list(GET VERSION_MATCHES 4 API_BROKER_HASH_TAG)
   endif(VERSION_MATCHES_LENGTH GREATER 4)
 else(VERSION_MATCHES_LENGTH GREATER 3)
   find_package(Git)
   if(EXISTS "${CMAKE_SOURCE_DIR}/.git" AND GIT_FOUND)
-    set(CUBRID_MAJOR_START_DATE "2019-12-12")
+    set(API_BROKER_MAJOR_START_DATE "2019-12-12")
     execute_process(COMMAND ${GIT_EXECUTABLE} --version
     COMMAND awk "{ printf \"%s\", $3 }"
     OUTPUT_VARIABLE GIT_VERSION
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
     if(GIT_VERSION VERSION_GREATER 1.7.6)
-      execute_process(COMMAND ${GIT_EXECUTABLE} rev-list --count --after ${CUBRID_MAJOR_START_DATE} HEAD
+      execute_process(COMMAND ${GIT_EXECUTABLE} rev-list --count --after ${API_BROKER_MAJOR_START_DATE} HEAD
         COMMAND awk "{ printf \"%04d\", $1 }"
         OUTPUT_VARIABLE commit_count RESULT_VARIABLE git_result
         ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -129,8 +124,7 @@ else(VERSION_MATCHES_LENGTH GREATER 3)
       # You may prefer the first option if you want to use git command in command prompt.
       #
       # If both fixes fail, just replace execute_process(...) with set (commit_count 0). It is not a critical step to generate the project.
-      # Also you may send us a message at https://www.cubrid.org/contact
-      execute_process(COMMAND ${GIT_EXECUTABLE} log --after ${CUBRID_MAJOR_START_DATE} --oneline
+      execute_process(COMMAND ${GIT_EXECUTABLE} log --after ${API_BROKER_MAJOR_START_DATE} --oneline
         COMMAND wc -l
         COMMAND awk "{ printf \"%04d\", $1 }"
         OUTPUT_VARIABLE commit_count RESULT_VARIABLE git_result
@@ -140,7 +134,7 @@ else(VERSION_MATCHES_LENGTH GREATER 3)
     if(git_result)
       message(FATAL_ERROR "Could not get count information from Git")
     endif(git_result)
-    set(CUBRID_EXTRA_VERSION ${commit_count})
+    set(API_BROKER_EXTRA_VERSION ${commit_count})
     execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --short=7 HEAD
       OUTPUT_VARIABLE commit_hash RESULT_VARIABLE git_result
       ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -148,29 +142,29 @@ else(VERSION_MATCHES_LENGTH GREATER 3)
     if(git_result)
       message(FATAL_ERROR "Could not get hash information from Git")
     endif(git_result)
-    set(CUBRID_HASH_TAG -${commit_hash})
+    set(API_BROKER_HASH_TAG -${commit_hash})
     # Generate the same file in other directory to trigger cmake re-configure when the HEAD changes
     configure_file(".git/HEAD" ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/HEAD.check_cache COPYONLY)
   else(EXISTS "${CMAKE_SOURCE_DIR}/.git" AND GIT_FOUND)
-    set(CUBRID_EXTRA_VERSION 0)
+    set(API_BROKER_EXTRA_VERSION 0)
   endif(EXISTS "${CMAKE_SOURCE_DIR}/.git" AND GIT_FOUND)
 endif(VERSION_MATCHES_LENGTH GREATER 3)
-set(CUBRID_VERSION ${CUBRID_MAJOR_VERSION}.${CUBRID_MINOR_VERSION}.${CUBRID_PATCH_VERSION}.${CUBRID_EXTRA_VERSION}${CUBRID_HASH_TAG})
+set(API_BROKER_VERSION ${API_BROKER_MAJOR_VERSION}.${API_BROKER_MINOR_VERSION}.${API_BROKER_PATCH_VERSION}.${API_BROKER_EXTRA_VERSION}${API_BROKER_HASH_TAG})
 
-set(MAJOR_RELEASE_STRING ${CUBRID_MAJOR_VERSION}.${CUBRID_MINOR_VERSION})
+set(MAJOR_RELEASE_STRING ${API_BROKER_MAJOR_VERSION}.${API_BROKER_MINOR_VERSION})
 set(PACKAGE_STRING "${PROJECT_NAME} ${MAJOR_RELEASE_STRING}")
 set(PRODUCT_STRING "${MAJOR_RELEASE_STRING}")
 # TODO: change to string type for RELEASE_STRING, BUILD_NUMBER, BUILD_OS
 # TODO: remove #if defined (VERSION_STRING) in src/base/release_string.c
-set(RELEASE_STRING ${CUBRID_MAJOR_VERSION}.${CUBRID_MINOR_VERSION}.${CUBRID_PATCH_VERSION})
+set(RELEASE_STRING ${API_BROKER_MAJOR_VERSION}.${API_BROKER_MINOR_VERSION}.${API_BROKER_PATCH_VERSION})
 # BUILD_NUMBER (digital only version string) for legacy codes
-set(BUILD_NUMBER ${CUBRID_MAJOR_VERSION}.${CUBRID_MINOR_VERSION}.${CUBRID_PATCH_VERSION}.${CUBRID_EXTRA_VERSION})
+set(BUILD_NUMBER ${API_BROKER_MAJOR_VERSION}.${API_BROKER_MINOR_VERSION}.${API_BROKER_PATCH_VERSION}.${API_BROKER_EXTRA_VERSION})
 set(BUILD_OS ${CMAKE_SYSTEM_NAME})
 
 # BUILD_TYPE
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
   set(BUILD_TYPE "debug")
-elseif(CMAKE_BUILD_TYPE MATCHES "Coverage|Profile")
+elseif(CMAKE_BUILD_TYPE MATCHES "Profile")
   string(TOLOWER "${CMAKE_BUILD_TYPE} debug" BUILD_TYPE)
 elseif(CMAKE_BUILD_TYPE MATCHES "Release|RelWithDebInfo")
   set(BUILD_TYPE "release")
@@ -260,121 +254,12 @@ endif(UNIX)
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   set(TARGET_PLATFORM_BITS 64)
 else()
-  message(FATAL_ERROR "Target platform 32bit is no longer supported as of CUBRID 10.2")
+  message(FATAL_ERROR "Target platform 32bit is no longer supported as of API BROKER 1.0")
 endif()
 
-# FIXME: remove unused checking rule
-#include(CheckSymbolExists)
-#if(WIN32)
-#  check_symbol_exists("_M_AMD64" "" TARGET_ARCH_X64)
-#  if(NOT TARGET_ARCH_X64)
-#    check_symbol_exists("_M_IX86" "" TARGET_ARCH_X86)
-#  endif(NOT TARGET_ARCH_X64)
-#else(WIN32)
-#  check_symbol_exists("__i386__" "" TARGET_ARCH_X86)
-#  check_symbol_exists("__x86_64__" "" TARGET_ARCH_X64)
-#endif(WIN32)
-
-message(STATUS "Build ${PROJECT_NAME} ${CUBRID_VERSION} ${TARGET_PLATFORM_BITS}bit ${CMAKE_BUILD_TYPE} on ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_PROCESSOR}")
-
-# generate parser and lexer
-#set(CSQL_GRAMMAR_INPUT ${CMAKE_SOURCE_DIR}/src/parser/csql_grammar.y)
-#set(CSQL_GRAMMAR_OUTPUT ${CMAKE_BINARY_DIR}/csql_grammar.c)
-#set(CSQL_LEXER_INPUT ${CMAKE_SOURCE_DIR}/src/parser/csql_lexer.l)
-#set(CSQL_LEXER_OUTPUT ${CMAKE_BINARY_DIR}/csql_lexer.c)
-#set(LOADER_GRAMMAR_INPUT ${CMAKE_SOURCE_DIR}/src/loaddb/load_grammar.yy)
-#set(LOADER_GRAMMAR_OUTPUT ${CMAKE_BINARY_DIR}/load_grammar.cpp)
-#set(LOADER_LEXER_INPUT ${CMAKE_SOURCE_DIR}/src/loaddb/load_lexer.l)
-#set(LOADER_LEXER_OUTPUT ${CMAKE_BINARY_DIR}/load_lexer.cpp)
-#set(ESQL_GRAMMAR_INPUT ${CMAKE_SOURCE_DIR}/src/executables/esql_grammar.y)
-#set(ESQL_GRAMMAR_OUTPUT ${CMAKE_BINARY_DIR}/esql_grammar.c)
-#set(ESQL_LEXER_INPUT ${CMAKE_SOURCE_DIR}/src/executables/esql_lexer.l)
-#set(ESQL_LEXER_OUTPUT ${CMAKE_BINARY_DIR}/esql_lexer.c)
-
-# include 3rdparty
-#message("Including Third Party Libraries")
-#add_subdirectory(3rdparty)
-
-# CSQL FLEX/BISON targets
-# replace old bison directives with new ones
-# use add_custom_command because we want to regenerate csql_grammar.yy
-# whenever csql_grammar.y is modified
-#add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/csql_grammar.yy
-#  COMMAND ${CMAKE_COMMAND} -DGRAMMAR_INPUT_FILE=${CMAKE_SOURCE_DIR}/src/parser/csql_grammar.y -DGRAMMAR_OUTPUT_FILE=${CMAKE_CURRENT_BINARY_DIR}/csql_grammar.yy -P ${CMAKE_SOURCE_DIR}/cmake/upgrade_bison_grammar.cmake
-#  MAIN_DEPENDENCY ${CMAKE_SOURCE_DIR}/src/parser/csql_grammar.y
-#)
-
-#set(CSQL_GRAMMAR_INPUT ${CMAKE_CURRENT_BINARY_DIR}/csql_grammar.yy)
-
-# because csql_grammar.yy are generated through a custom command
-# whenever csql_grammar.y is modified, bison and flex will be
-# run to create new outputs
-
-#bison_target(csql_grammar ${CSQL_GRAMMAR_INPUT} ${CSQL_GRAMMAR_OUTPUT}
-#  COMPILE_FLAGS "--no-lines --name-prefix=csql_yy -d -r all")
-#flex_target(csql_lexer ${CSQL_LEXER_INPUT} ${CSQL_LEXER_OUTPUT}
-#  COMPILE_FLAGS "--noline --never-interactive --prefix=csql_yy")
-#add_flex_bison_dependency(csql_lexer csql_grammar)
-#add_custom_target(gen_csql_grammar DEPENDS ${BISON_csql_grammar_OUTPUTS})
-#add_custom_target(gen_csql_lexer DEPENDS ${FLEX_csql_lexer_OUTPUTS})
-
-# Loader FLEX/BISON targets
-#bison_target(loader_grammar ${LOADER_GRAMMAR_INPUT} ${LOADER_GRAMMAR_OUTPUT}
-#  COMPILE_FLAGS "-d -r all")
-#flex_target(loader_lexer ${LOADER_LEXER_INPUT} ${LOADER_LEXER_OUTPUT}
-#  COMPILE_FLAGS "--noline")
-#add_flex_bison_dependency(loader_lexer loader_grammar)
-#add_custom_target(gen_loader_grammar DEPENDS ${BISON_loader_grammar_OUTPUTS})
-#add_custom_target(gen_loader_lexer DEPENDS ${FLEX_loader_lexer_OUTPUTS})
-
-# ESQL FLEX/BISON targets
-# replace old bison directives with new ones
-# use add_custom_command because we want to regenerate esql_grammar.yy
-# whenever esql_grammar.y is modified
-#add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/esql_grammar.yy
-#  COMMAND ${CMAKE_COMMAND} -DGRAMMAR_INPUT_FILE=${CMAKE_SOURCE_DIR}/src/executables/esql_grammar.y -DGRAMMAR_OUTPUT_FILE=${CMAKE_CURRENT_BINARY_DIR}/esql_grammar.yy -P ${CMAKE_SOURCE_DIR}/cmake/upgrade_bison_grammar.cmake
-#  MAIN_DEPENDENCY ${CMAKE_SOURCE_DIR}/src/executables/esql_grammar.y
-#)
-
-#set(ESQL_GRAMMAR_INPUT ${CMAKE_CURRENT_BINARY_DIR}/esql_grammar.yy)
-
-# because esql_grammar.yy are generated through a custom command
-# whenever esql_grammar.y is modified, bison and flex will be
-# run to create new outputs
-
-#bison_target(esql_grammar ${ESQL_GRAMMAR_INPUT} ${ESQL_GRAMMAR_OUTPUT}
-#  COMPILE_FLAGS "--no-lines --name-prefix=esql_yy -d -r all")
-#flex_target(esql_lexer ${ESQL_LEXER_INPUT} ${ESQL_LEXER_OUTPUT}
-#  COMPILE_FLAGS "--noline --never-interactive --prefix=esql_yy")
-#add_flex_bison_dependency(esql_lexer esql_grammar)
-#add_custom_target(gen_esql_grammar DEPENDS ${BISON_esql_grammar_OUTPUTS})
-#add_custom_target(gen_esql_lexer DEPENDS ${FLEX_esql_lexer_OUTPUTS})
-
-# For java stored procedure server
-#include(FindJNI)
-#find_package(JNI 1.5)
-#if(JNI_FOUND)
-#  set(JAVA_INC ${JAVA_INCLUDE_PATH} ${JAVA_INCLUDE_PATH2})
-#endif(JNI_FOUND)
+message(STATUS "Build ${PROJECT_NAME} ${API_BROKER_VERSION} ${TARGET_PLATFORM_BITS}bit ${CMAKE_BUILD_TYPE} on ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_PROCESSOR}")
 
 # Build types
-if(CMAKE_BUILD_TYPE MATCHES "Coverage")
-  set(CMAKE_CXX_FLAGS_COVERAGE "-g -O0 --coverage -fprofile-arcs -ftest-coverage -std=c++17 -D_GCOV"
-    CACHE STRING "Flags used by the c++ compiler during coverage build." FORCE)
-  set(CMAKE_C_FLAGS_COVERAGE "-g -O0 --coverage -fprofile-arcs -ftest-coverage -D_GCOV"
-    CACHE STRING "Flags used by the c compiler during coverage build." FORCE)
-  set(CMAKE_EXE_LINKER_FLAGS_COVERAGE "-static-libstdc++"
-    CACHE STRING "Flags used for linking binaries during coverage build." FORCE)
-  set(CMAKE_SHARED_LINKER_FLAGS_COVERAGE "-static-libstdc++"
-    CACHE STRING "Flags used for shared libraries during coverage build." FORCE)
-
-  mark_as_advanced(
-    CMAKE_CXX_FLAGS_COVERAGE
-    CMAKE_C_FLAGS_COVERAGE
-    CMAKE_EXE_LINKER_FLAGS_COVERAGE
-    CMAKE_SHARED_LINKER_FLAGS_COVERAGE)
-endif(CMAKE_BUILD_TYPE MATCHES "Coverage")
-
 if(CMAKE_BUILD_TYPE MATCHES "Profile")
   set(CMAKE_CXX_FLAGS_PROFILE "-g -pg -std=c++17"
     CACHE STRING "Flags used by the c++ compiler during profile build." FORCE)
@@ -389,19 +274,26 @@ endif(CMAKE_BUILD_TYPE MATCHES "Profile")
 set(BASE_DIR                 ${CMAKE_SOURCE_DIR}/src/base)
 set(BROKER_DIR               ${CMAKE_SOURCE_DIR}/src/broker)
 set(S62_DIR                  ${CMAKE_SOURCE_DIR}/src/s62)
-set(S62_LIB_DIR		     /turbograph-v3/turbograph-v3/build/tbgpp-api-server)
+get_filename_component(S62_LIB_DIR "../build/tbgpp-api-server" ABSOLUTE)
+message("-- S62_LIB_DIR = ${S62_LIB_DIR}")
+
+find_file(S62_API_SERVER_LIB
+        "libtbgpp-api-server-shared.so"
+        PATH ${S62_LIB_DIR}
+        NO_DEFAULT_PATH
+        REQUIRED)
+message("-- S62_API_SERVER_LIB = ${S62_API_SERVER_LIB}")
+
+if(S62_API_SERVER_LIB MATCHES "S62_API_SERVER_LIB-NOTFOUND")
+message(FATAL_ERROR "S62_API_SERVER_LIB IS NOT FOUND PATH : ${S62_LIB_DIR}/libtbgpp-api-server-shared.so")
+endif(S62_API_SERVER_LIB MATCHES "S62_API_SERVER_LIB-NOTFOUND")
+
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(
   include
   src/broker
   )
-if(WITH_CCI)
-  include_directories(
-    cubrid-cci/src/cci
-    cubrid-cci/src/tools
-  )
-endif(WITH_CCI)
 
 include(CheckFunctionExists)
 check_function_exists(asprintf HAVE_ASPRINTF)
@@ -636,112 +528,106 @@ if(USE_DUMA)
 endif(USE_DUMA)
 
 
-# For CUBRID environment variable option
-if(USE_CUBRID_ENV)
+# For API Broker environment variable option
+if(USE_API_BROKER_ENV)
   message(STATUS "Default install prefix: ${CMAKE_INSTALL_PREFIX}")
-  set(CUBRID_PREFIXDIR .)
-  set(CUBRID_BINDIR bin)
-  set(CUBRID_LIBDIR lib)
-  set(CUBRID_SRCDIR src)
-  set(CUBRID_INCLUDEDIR include)
-  set(CUBRID_VARDIR var)
-  set(CUBRID_DATADIR share)
-  set(CUBRID_CONFDIR conf)
-  set(CUBRID_DATABASE_CONFDIR data)
-  set(CUBRID_JAVADIR java)
-  set(CUBRID_LOCALEDIR msg)
-  set(CUBRID_LOGDIR log)
-  set(CUBRID_TMPDIR tmp)
-  set(CUBRID_SHLOCALESDIR locales)
-  set(CUBRID_TZDIR timezones)
-  set(CUBRID_DEMODIR demo)
-  set(CUBRID_COMPATDIR compat)
-  set(CUBRID_CCIDIR cci)
-  set(CUBRID_DATABASES databases)
-  set(CUBRID_SOCK CUBRID_SOCK)
-else(USE_CUBRID_ENV)
-  message(WARNING "This build does not use CUBRID environment variables")
-  list(APPEND COMMON_DEFS DO_NOT_USE_CUBRIDENV)
+  set(API_BROKER_PREFIXDIR .)
+  set(API_BROKER_BINDIR bin)
+  set(API_BROKER_LIBDIR lib)
+  set(API_BROKER_SRCDIR src)
+  set(API_BROKER_INCLUDEDIR include)
+  set(API_BROKER_VARDIR var)
+  set(API_BROKER_DATADIR share)
+  set(API_BROKER_CONFDIR conf)
+  set(API_BROKER_DATABASE_CONFDIR data)
+  set(API_BROKER_JAVADIR java)
+  set(API_BROKER_LOCALEDIR msg)
+  set(API_BROKER_LOGDIR log)
+  set(API_BROKER_TMPDIR tmp)
+  set(API_BROKER_SHLOCALESDIR locales)
+  set(API_BROKER_TZDIR timezones)
+  set(API_BROKER_DEMODIR demo)
+  set(API_BROKER_COMPATDIR compat)
+  set(API_BROKER_DATABASES databases)
+  set(API_BROKER_SOCK API_BROKER_SOCK)
+else(USE_API_BROKER_ENV)
+  message(WARNING "This build does not use API BROKER environment variables")
+  list(APPEND COMMON_DEFS DO_NOT_USE_APIBROKERENV)
 
-  set(CUBRID_PREFIXDIR ${CMAKE_INSTALL_PREFIX} CACHE STRING "The prefix directory for CUBRID (default: ${CMAKE_INSTALL_PREFIX}")
-  list(APPEND DIR_DEFS CUBRID_PREFIXDIR="${CUBRID_PREFIXDIR}")
-  set(CUBRID_BINDIR bin CACHE STRING "The directory for binary files")
-  if(IS_ABSOLUTE ${CUBRID_BINDIR})
-    list(APPEND DIR_DEFS CUBRID_BINDIR="${CUBRID_BINDIR}")
+  set(API_BROKER_PREFIXDIR ${CMAKE_INSTALL_PREFIX} CACHE STRING "The prefix directory for API BROKER (default: ${CMAKE_INSTALL_PREFIX}")
+  list(APPEND DIR_DEFS API_BROKER_PREFIXDIR="${API_BROKER_PREFIXDIR}")
+  set(API_BROKER_BINDIR bin CACHE STRING "The directory for binary files")
+  if(IS_ABSOLUTE ${API_BROKER_BINDIR})
+    list(APPEND DIR_DEFS API_BROKER_BINDIR="${API_BROKER_BINDIR}")
   else()
-    list(APPEND DIR_DEFS CUBRID_BINDIR="${CUBRID_PREFIXDIR}/${CUBRID_BINDIR}")
+    list(APPEND DIR_DEFS API_BROKER_BINDIR="${API_BROKER_PREFIXDIR}/${API_BROKER_BINDIR}")
   endif()
-  set(CUBRID_LIBDIR lib CACHE STRING "The directory for library files")
-  if(IS_ABSOLUTE ${CUBRID_LIBDIR})
-    list(APPEND DIR_DEFS CUBRID_LIBDIR="${CUBRID_LIBDIR}")
+  set(API_BROKER_LIBDIR lib CACHE STRING "The directory for library files")
+  if(IS_ABSOLUTE ${API_BROKER_LIBDIR})
+    list(APPEND DIR_DEFS API_BROKER_LIBDIR="${API_BROKER_LIBDIR}")
   else()
-    list(APPEND DIR_DEFS CUBRID_LIBDIR="${CUBRID_PREFIXDIR}/${CUBRID_LIBDIR}")
+    list(APPEND DIR_DEFS API_BROKER_LIBDIR="${API_BROKER_PREFIXDIR}/${API_BROKER_LIBDIR}")
   endif()
-  set(CUBRID_SRCDIR src CACHE STRING "The directory for source files")
-  if(IS_ABSOLUTE ${CUBRID_SRCDIR})
-    list(APPEND DIR_DEFS CUBRID_SRCDIR="${CUBRID_SRCDIR}")
+  set(API_BROKER_SRCDIR src CACHE STRING "The directory for source files")
+  if(IS_ABSOLUTE ${API_BROKER_SRCDIR})
+    list(APPEND DIR_DEFS API_BROKER_SRCDIR="${API_BROKER_SRCDIR}")
   else()
-    list(APPEND DIR_DEFS CUBRID_SRCDIR="${CUBRID_PREFIXDIR}/${CUBRID_SRCDIR}")
+    list(APPEND DIR_DEFS API_BROKER_SRCDIR="${API_BROKER_PREFIXDIR}/${API_BROKER_SRCDIR}")
   endif()
-  set(CUBRID_VARDIR var CACHE STRING "The directory for variable data files")
-  if(IS_ABSOLUTE ${CUBRID_VARDIR})
-    list(APPEND DIR_DEFS CUBRID_VARDIR="${CUBRID_VARDIR}")
+  set(API_BROKER_VARDIR var CACHE STRING "The directory for variable data files")
+  if(IS_ABSOLUTE ${API_BROKER_VARDIR})
+    list(APPEND DIR_DEFS API_BROKER_VARDIR="${API_BROKER_VARDIR}")
   else()
-    list(APPEND DIR_DEFS CUBRID_VARDIR="${CUBRID_PREFIXDIR}/${CUBRID_VARDIR}")
+    list(APPEND DIR_DEFS API_BROKER_VARDIR="${API_BROKER_PREFIXDIR}/${API_BROKER_VARDIR}")
   endif()
-  set(CUBRID_DATADIR share CACHE STRING "The directory for shared data files")
-  if(IS_ABSOLUTE ${CUBRID_DATADIR})
-    list(APPEND DIR_DEFS CUBRID_DATADIR="${CUBRID_DATADIR}")
+  set(API_BROKER_DATADIR share CACHE STRING "The directory for shared data files")
+  if(IS_ABSOLUTE ${API_BROKER_DATADIR})
+    list(APPEND DIR_DEFS API_BROKER_DATADIR="${API_BROKER_DATADIR}")
   else()
-    list(APPEND DIR_DEFS CUBRID_DATADIR="${CUBRID_PREFIXDIR}/${CUBRID_DATADIR}")
+    list(APPEND DIR_DEFS API_BROKER_DATADIR="${API_BROKER_PREFIXDIR}/${API_BROKER_DATADIR}")
   endif()
-  set(CUBRID_CONFDIR conf CACHE STRING "The directory for configuration files")
-  if(IS_ABSOLUTE ${CUBRID_CONFDIR})
-    list(APPEND DIR_DEFS CUBRID_CONFDIR="${CUBRID_CONFDIR}")
+  set(API_BROKER_CONFDIR conf CACHE STRING "The directory for configuration files")
+  if(IS_ABSOLUTE ${API_BROKER_CONFDIR})
+    list(APPEND DIR_DEFS API_BROKER_CONFDIR="${API_BROKER_CONFDIR}")
   else()
-    list(APPEND DIR_DEFS CUBRID_CONFDIR="${CUBRID_PREFIXDIR}/${CUBRID_CONFDIR}")
+    list(APPEND DIR_DEFS API_BROKER_CONFDIR="${API_BROKER_PREFIXDIR}/${API_BROKER_CONFDIR}")
   endif()
-  if(IS_ABSOLUTE ${CUBRID_DATABASE_CONFDIR})
-    list(APPEND DIR_DEFS CUBRID_DATABASE_CONFDIR="${CUBRID_DATABASE_CONFDIR}")
+  if(IS_ABSOLUTE ${API_BROKER_DATABASE_CONFDIR})
+    list(APPEND DIR_DEFS API_BROKER_DATABASE_CONFDIR="${API_BROKER_DATABASE_CONFDIR}")
   else()
-    list(APPEND DIR_DEFS CUBRID_DATABASE_CONFDIR="${CUBRID_PREFIXDIR}/${CUBRID_DATABASE_CONFDIR}")
+    list(APPEND DIR_DEFS API_BROKER_DATABASE_CONFDIR="${API_BROKER_PREFIXDIR}/${API_BROKER_DATABASE_CONFDIR}")
   endif()
-  set(CUBRID_JAVADIR java CACHE STRING "The directory for JSP file")
-  if(IS_ABSOLUTE ${CUBRID_JAVADIR})
-    list(APPEND DIR_DEFS CUBRID_JAVADIR="${CUBRID_JAVADIR}")
+  set(API_BROKER_JAVADIR java CACHE STRING "The directory for JSP file")
+  if(IS_ABSOLUTE ${API_BROKER_JAVADIR})
+    list(APPEND DIR_DEFS API_BROKER_JAVADIR="${API_BROKER_JAVADIR}")
   else()
-    list(APPEND DIR_DEFS CUBRID_JAVADIR="${CUBRID_PREFIXDIR}/${CUBRID_JAVADIR}")
+    list(APPEND DIR_DEFS API_BROKER_JAVADIR="${API_BROKER_PREFIXDIR}/${API_BROKER_JAVADIR}")
   endif()
-  set(CUBRID_LOCALEDIR msg CACHE STRING "The directory for message files")
-  if(IS_ABSOLUTE ${CUBRID_LOCALEDIR})
-    list(APPEND DIR_DEFS CUBRID_LOCALEDIR="${CUBRID_LOCALEDIR}")
+  set(API_BROKER_LOCALEDIR msg CACHE STRING "The directory for message files")
+  if(IS_ABSOLUTE ${API_BROKER_LOCALEDIR})
+    list(APPEND DIR_DEFS API_BROKER_LOCALEDIR="${API_BROKER_LOCALEDIR}")
   else()
-    list(APPEND DIR_DEFS CUBRID_LOCALEDIR="${CUBRID_PREFIXDIR}/${CUBRID_LOCALEDIR}")
+    list(APPEND DIR_DEFS API_BROKER_LOCALEDIR="${API_BROKER_PREFIXDIR}/${API_BROKER_LOCALEDIR}")
   endif()
-  set(CUBRID_LOGDIR log CACHE STRING "The directory for log files")
-  if(IS_ABSOLUTE ${CUBRID_LOGDIR})
-    list(APPEND DIR_DEFS CUBRID_LOGDIR="${CUBRID_LOGDIR}")
+  set(API_BROKER_LOGDIR log CACHE STRING "The directory for log files")
+  if(IS_ABSOLUTE ${API_BROKER_LOGDIR})
+    list(APPEND DIR_DEFS API_BROKER_LOGDIR="${API_BROKER_LOGDIR}")
   else()
-    list(APPEND DIR_DEFS CUBRID_LOGDIR="${CUBRID_PREFIXDIR}/${CUBRID_LOGDIR}")
+    list(APPEND DIR_DEFS API_BROKER_LOGDIR="${API_BROKER_PREFIXDIR}/${API_BROKER_LOGDIR}")
   endif()
-  set(CUBRID_TMPDIR tmp CACHE STRING "The directory for temporary files")
-  if(IS_ABSOLUTE ${CUBRID_TMPDIR})
-    list(APPEND DIR_DEFS CUBRID_TMPDIR="${CUBRID_TMPDIR}")
+  set(API_BROKER_TMPDIR tmp CACHE STRING "The directory for temporary files")
+  if(IS_ABSOLUTE ${API_BROKER_TMPDIR})
+    list(APPEND DIR_DEFS API_BROKER_TMPDIR="${API_BROKER_TMPDIR}")
   else()
-    list(APPEND DIR_DEFS CUBRID_TMPDIR="${CUBRID_PREFIXDIR}/${CUBRID_TMPDIR}")
-  endif()
-  if(IS_ABSOLUTE ${CUBRID_CCIDIR})
-    list(APPEND DIR_DEFS CUBRID_TMPDIR="${CUBRID_CCIDIR}")
-  else()
-    list(APPEND DIR_DEFS CUBRID_TMPDIR="${CUBRID_PREFIXDIR}/${CUBRID_CCIDIR}")
+    list(APPEND DIR_DEFS API_BROKER_TMPDIR="${API_BROKER_PREFIXDIR}/${API_BROKER_TMPDIR}")
   endif()
   # directories for install
-  set(CUBRID_INCLUDEDIR include CACHE STRING "The directory for header files")
-  set(CUBRID_SHLOCALESDIR locales CACHE STRING "The directory for locale files")
-  set(CUBRID_TZDIR timezones CACHE STRING "The directory for timezone files")
-  set(CUBRID_DEMODIR demo CACHE STRING "The directory for demo data files")
-  set(CUBRID_COMPATDIR compat CACHE STRING "The directory for compatible files")
-endif(USE_CUBRID_ENV)
+  set(API_BROKER_INCLUDEDIR include CACHE STRING "The directory for header files")
+  set(API_BROKER_SHLOCALESDIR locales CACHE STRING "The directory for locale files")
+  set(API_BROKER_TZDIR timezones CACHE STRING "The directory for timezone files")
+  set(API_BROKER_DEMODIR demo CACHE STRING "The directory for demo data files")
+  set(API_BROKER_COMPATDIR compat CACHE STRING "The directory for compatible files")
+endif(USE_API_BROKER_ENV)
 
 # For JVM libraries
 if(WIN32)
@@ -749,128 +635,36 @@ if(WIN32)
   list(APPEND JVM_LIBS -DELAYLOAD:jvm.dll)
 endif(WIN32)
 
-if(WITH_JDBC AND EXISTS ${CMAKE_SOURCE_DIR}/cubrid-jdbc/src)
-  message("Build JDBC Driver from cubird-jdbc submodule")
-
-  set(JDBC_DIR ${CMAKE_SOURCE_DIR}/cubrid-jdbc)
-  add_subdirectory(cubrid-jdbc)
-
-  # dist JDBC
-  if(USE_CUBRID_ENV)
-    set(CUBRID_JDBCDIR jdbc)
-  else(USE_CUBRID_ENV)
-    set(CUBRID_JDBCDIR jdbc CACHE STRING "The directory for JDBC driver file")
-  endif(USE_CUBRID_ENV)
-
-  install(DIRECTORY ${JDBC_DIR}/
-    DESTINATION ${CUBRID_JDBCDIR} COMPONENT JDBC
-    FILES_MATCHING PATTERN "*.jar"
-  )
-endif()
-
 # include subdirectories
-#add_subdirectory(sa)
-#add_subdirectory(cs)
-#add_subdirectory(cubrid)
-#add_subdirectory(util)
-#if(WITH_CCI)
-#  add_subdirectory(cubrid-cci)
-#endif(WITH_CCI)
 add_subdirectory(broker)
-#add_subdirectory(cm_common)
 add_subdirectory(conf)
 add_subdirectory(data)
-#add_subdirectory(msg)
-#add_subdirectory(demo)
-#add_subdirectory(contrib)
-#add_subdirectory(locales)
-#add_subdirectory(timezones)
-#add_subdirectory(jsp)
-#if(AT_LEAST_ONE_UNIT_TEST)
-#  add_subdirectory(unit_tests)
-#endif()
-
-# for cmserver
-if(WITH_CCI AND WITH_CMSERVER AND EXISTS ${CMAKE_SOURCE_DIR}/cubridmanager/server)
-  include(ExternalProject)
-  get_target_property(CCI_PUBLIC_HEADERS cascci PUBLIC_HEADER)
-  get_target_property(CMDEP_PUBLIC_HEADERS cmdep PUBLIC_HEADER)
-  get_target_property(CMSTAT_PUBLIC_HEADERS cmstat PUBLIC_HEADER)
-  list(APPEND CMS_CONFIGURE_OPTS --enable-64bit)
-  add_custom_target(pre_cubridmanager)
-  if(UNIX)
-    set(CMS_DEPENDS cubridcs cascci cmstat cmdep)
-    externalproject_add(cubridmanager
-      LOG_CONFIGURE        TRUE
-      LOG_BUILD            TRUE
-      DEPENDS pre_cubridmanager ${CMS_DEPENDS}
-      SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cubridmanager/server
-      CONFIGURE_COMMAND sh <SOURCE_DIR>/autogen.sh
-      COMMAND sh <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --with-cubrid-libdir=<TMP_DIR> --with-cubrid-includedir=<TMP_DIR> ${CMS_CONFIGURE_OPTS}
-      BUILD_COMMAND make all AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=:
-      INSTALL_COMMAND make install AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=:
-      )
-  else(UNIX)
-    set(CMS_DEPENDS cascci cmstat cmdep)
-    externalproject_add(cubridmanager
-      DEPENDS pre_cubridmanager ${CMS_DEPENDS}
-      LOG_CONFIGURE        TRUE
-      LOG_BUILD            TRUE
-      SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cubridmanager/server
-      CONFIGURE_COMMAND ""
-      BUILD_COMMAND cmd /c build.bat --prefix <INSTALL_DIR> --with-cubrid-libdir <TMP_DIR> --with-cubrid-includedir <TMP_DIR> ${CMS_CONFIGURE_OPTS}
-      INSTALL_COMMAND ""
-      BUILD_IN_SOURCE 1
-      )
-  endif(UNIX)
-  externalproject_get_property(cubridmanager TMP_DIR)
-  foreach(required_target ${CMS_DEPENDS})
-    add_custom_command(TARGET pre_cubridmanager PRE_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_LINKER_FILE:${required_target}> ${TMP_DIR})
-  endforeach(required_target)
-  foreach(required_header ${CCI_PUBLIC_HEADERS} ${CMDEP_PUBLIC_HEADERS} ${CMSTAT_PUBLIC_HEADERS})
-    add_custom_command(TARGET pre_cubridmanager PRE_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy ${required_header} ${TMP_DIR})
-  endforeach(required_header)
-
-  externalproject_get_property(cubridmanager INSTALL_DIR)
-  install(DIRECTORY ${INSTALL_DIR}/
-    DESTINATION ${CUBRID_PREFIXDIR} COMPONENT Manager
-    USE_SOURCE_PERMISSIONS)
-endif(WITH_CCI AND WITH_CMSERVER AND EXISTS ${CMAKE_SOURCE_DIR}/cubridmanager/server)
+add_subdirectory(contrib)
 
 # create empty directories
-install(DIRECTORY DESTINATION ${CUBRID_LOGDIR})
-install(DIRECTORY DESTINATION ${CUBRID_VARDIR})
-install(DIRECTORY DESTINATION ${CUBRID_TMPDIR})
-install(DIRECTORY DESTINATION ${CUBRID_DATABASES})
-install(DIRECTORY DESTINATION "${CUBRID_VARDIR}/${CUBRID_SOCK}")
-if(USE_CUBRID_ENV)
+install(DIRECTORY DESTINATION ${API_BROKER_LOGDIR})
+install(DIRECTORY DESTINATION ${API_BROKER_VARDIR})
+install(DIRECTORY DESTINATION ${API_BROKER_TMPDIR})
+install(DIRECTORY DESTINATION "${API_BROKER_VARDIR}/${API_BROKER_SOCK}")
+if(USE_API_BROKER_ENV)
   install(FILES
 #    ${CMAKE_SOURCE_DIR}/COPYING
 #    ${CMAKE_SOURCE_DIR}/CREDITS
 #    ${CMAKE_SOURCE_DIR}/README
     ${CMAKE_SOURCE_DIR}/contrib/readme/README_TAR_INSTALL
-    DESTINATION ${CUBRID_PREFIXDIR})
-# on Windows, databases.txt is create from 'make_cubrid_demo.bat' because databases.txt is deleted in MSI file for install.
-  install(FILES
-    ${CMAKE_SOURCE_DIR}/contrib/readme/databases.txt.sample
-    DESTINATION ${CUBRID_DATABASES})
+    DESTINATION ${API_BROKER_PREFIXDIR})
   install(FILES
     ${CMAKE_SOURCE_DIR}/contrib/readme/README_SOCK.txt
-    DESTINATION ${CUBRID_VARDIR}/${CUBRID_SOCK}
+    DESTINATION ${API_BROKER_VARDIR}/${API_BROKER_SOCK}
     RENAME README.txt)
   install(FILES
     ${CMAKE_SOURCE_DIR}/contrib/readme/README_TMP.txt
-    DESTINATION ${CUBRID_TMPDIR}
+    DESTINATION ${API_BROKER_TMPDIR}
     RENAME README.txt)
-endif(USE_CUBRID_ENV)
+endif(USE_API_BROKER_ENV)
 
 if(WITH_SOURCES)
-  install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/ DESTINATION ${CUBRID_SRCDIR})
-  if(WITH_CCI)
-    install(DIRECTORY ${CMAKE_SOURCE_DIR}/cubrid-cci/src/ DESTINATION ${CUBRID_SRCDIR})
-  endif(WITH_CCI)
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/ DESTINATION ${API_BROKER_SRCDIR})
 endif(WITH_SOURCES)
 
 # for packaging
@@ -881,45 +675,30 @@ else(UNIX)
   set(CPACK_GENERATOR "ZIP")
 endif(UNIX)
 
-if(WITH_CCI)
-  if(EXISTS ${CMAKE_SOURCE_DIR}/cubrid-cci/CCI-VERSION-DIST)
-    set(VERSION_FILE ${CMAKE_SOURCE_DIR}/cubrid-cci/CCI-VERSION-DIST)
-    file(STRINGS ${VERSION_FILE} CCI_VERSION)
-  else(EXISTS ${CMAKE_SOURCE_DIR}/cubrid-cci/CCI-VERSION-DIST)
-    message(WARRING "Could not find a CCI VERSION file")
-    set(CCI_VERSION "0.0.0.0000")
-  endif(EXISTS ${CMAKE_SOURCE_DIR}/cubrid-cci/CCI-VERSION-DIST)
-message(STATUS "Get version information CCI_VERSION: ${CCI_VERSION}")
-endif(WITH_CCI)
-
 set(CPACK_PACKAGE_NAME "${PROJECT_NAME}")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "CUBRID Open Source RDBMS")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "API BROKER Open Source ")
 set(CPACK_PACKAGE_VENDOR "CUBRID Corporation")
 set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/COPYING")
 # for WiX (txt file extension is required)
 configure_file(COPYING LICENSE.txt)
 set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_BINARY_DIR}/LICENSE.txt")
-set(CPACK_PACKAGE_VERSION_MAJOR "${CUBRID_MAJOR_VERSION}")
-set(CPACK_PACKAGE_VERSION_MINOR "${CUBRID_MINOR_VERSION}")
-set(CPACK_PACKAGE_VERSION_PATCH "${CUBRID_PATCH_VERSION}")
-set(CPACK_PACKAGE_VERSION "${CUBRID_VERSION}")
+set(CPACK_PACKAGE_VERSION_MAJOR "${API_BROKER_MAJOR_VERSION}")
+set(CPACK_PACKAGE_VERSION_MINOR "${API_BROKER_MINOR_VERSION}")
+set(CPACK_PACKAGE_VERSION_PATCH "${API_BROKER_PATCH_VERSION}")
+set(CPACK_PACKAGE_VERSION "${API_BROKER_VERSION}")
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
-  set(CUBRID_PACKAGE_FILE_SUFFIX "-debug")
-elseif(CMAKE_BUILD_TYPE MATCHES "Coverage")
-  set(CUBRID_PACKAGE_FILE_SUFFIX "-coverage")
+  set(API_BROKER_PACKAGE_FILE_SUFFIX "-debug")
 elseif(CMAKE_BUILD_TYPE MATCHES "Profile")
-  set(CUBRID_PACKAGE_FILE_SUFFIX "-profile")
+  set(API_BROKER_PACKAGE_FILE_SUFFIX "-profile")
 else(CMAKE_BUILD_TYPE MATCHES "Debug")
-  set(CUBRID_PACKAGE_FILE_SUFFIX "")
+  set(API_BROKER_PACKAGE_FILE_SUFFIX "")
 endif(CMAKE_BUILD_TYPE MATCHES "Debug")
 if(WIN32)
-  set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${CMAKE_SYSTEM_NAME}-x64-${CUBRID_VERSION}${CUBRID_PACKAGE_FILE_SUFFIX}")
-  set(CCI_PACKAGE_FILE_NAME "${PROJECT_NAME}-CCI-${CMAKE_SYSTEM_NAME}-x64-${CCI_VERSION}${CUBRID_PACKAGE_FILE_SUFFIX}")
+  set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${CMAKE_SYSTEM_NAME}-x64-${API_BROKER_VERSION}${API_BROKER_PACKAGE_FILE_SUFFIX}")
 else(WIN32)
-  set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${CUBRID_VERSION}-${CMAKE_SYSTEM_NAME}.${CMAKE_HOST_SYSTEM_PROCESSOR}${CUBRID_PACKAGE_FILE_SUFFIX}")
-  set(CCI_PACKAGE_FILE_NAME "${PROJECT_NAME}-CCI-${CCI_VERSION}-${CMAKE_SYSTEM_NAME}.${CMAKE_HOST_SYSTEM_PROCESSOR}${CUBRID_PACKAGE_FILE_SUFFIX}")
+  set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${API_BROKER_VERSION}-${CMAKE_SYSTEM_NAME}.${CMAKE_HOST_SYSTEM_PROCESSOR}${API_BROKER_PACKAGE_FILE_SUFFIX}")
 endif(WIN32)
-set(CPACK_SOURCE_PACKAGE_FILE_NAME "${PROJECT_NAME}-${CUBRID_VERSION}-src")
+set(CPACK_SOURCE_PACKAGE_FILE_NAME "${PROJECT_NAME}-${API_BROKER_VERSION}-src")
 
 set(CPACK_COMPONENTS_ALL_IN_ONE_PACKAGE ON)
 

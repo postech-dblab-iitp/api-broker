@@ -1,6 +1,5 @@
 /*
- * Copyright 2008 Search Solution Corporation
- * Copyright 2016 CUBRID Corporation
+ * Copyright 2024 CUBRID Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,10 +18,10 @@
 #ifndef _VERSION_H_
 #define _VERSION_H_
 
-#define MAJOR_VERSION @CUBRID_MAJOR_VERSION@
-#define MINOR_VERSION @CUBRID_MINOR_VERSION@
-#define PATCH_VERSION @CUBRID_PATCH_VERSION@
-#define EXTRA_VERSION @CUBRID_EXTRA_VERSION@
+#define MAJOR_VERSION @API_BROKER_MAJOR_VERSION@
+#define MINOR_VERSION @API_BROKER_MINOR_VERSION@
+#define PATCH_VERSION @API_BROKER_PATCH_VERSION@
+#define EXTRA_VERSION @API_BROKER_EXTRA_VERSION@
 #define MAJOR_RELEASE_STRING @MAJOR_RELEASE_STRING@
 #define RELEASE_STRING @RELEASE_STRING@
 
@@ -32,6 +31,6 @@
 
 #define PACKAGE_STRING "@PACKAGE_STRING@"
 #define PRODUCT_STRING "@PRODUCT_STRING@"
-#define VERSION_STRING "@CUBRID_VERSION@"
+#define VERSION_STRING "@API_BROKER_VERSION@"
 
 #endif /* _VERSION_H_ */

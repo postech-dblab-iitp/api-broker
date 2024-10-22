@@ -1,6 +1,5 @@
 /*
- * Copyright 2008 Search Solution Corporation
- * Copyright 2016 CUBRID Corporation
+ * Copyright 2024 CUBRID Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -96,7 +95,7 @@ envvar_prefix (void)
 {
   if (!envvar_Prefix)
     {
-#if !defined (DO_NOT_USE_CUBRIDENV)
+#if !defined (DO_NOT_USE_APIBROKERENV)
       envvar_Root = getenv (envvar_Prefix_name);
       if (envvar_Root != NULL)
 	{
@@ -363,7 +362,7 @@ envvar_bindir_file (char *path, size_t size, const char *filename)
 {
   assert (filename != NULL);
 
-#if !defined (DO_NOT_USE_CUBRIDENV)
+#if !defined (DO_NOT_USE_APIBROKERENV)
   if (envvar_Root == NULL)
     {
       envvar_root ();
@@ -382,7 +381,7 @@ envvar_libdir_file (char *path, size_t size, const char *filename)
 {
   assert (filename != NULL);
 
-#if !defined (DO_NOT_USE_CUBRIDENV)
+#if !defined (DO_NOT_USE_APIBROKERENV)
   if (envvar_Root == NULL)
     {
       envvar_root ();
@@ -401,7 +400,7 @@ envvar_javadir_file (char *path, size_t size, const char *filename)
 {
   assert (filename != NULL);
 
-#if !defined (DO_NOT_USE_CUBRIDENV)
+#if !defined (DO_NOT_USE_APIBROKERENV)
   if (envvar_Root == NULL)
     {
       envvar_root ();
@@ -420,7 +419,7 @@ envvar_localedir_file (char *path, size_t size, const char *langpath, const char
 {
   assert (filename != NULL);
 
-#if !defined (DO_NOT_USE_CUBRIDENV)
+#if !defined (DO_NOT_USE_APIBROKERENV)
   if (envvar_Root == NULL)
     {
       envvar_root ();
@@ -439,7 +438,7 @@ envvar_confdir_file (char *path, size_t size, const char *filename)
 {
   assert (filename != NULL);
 
-#if !defined (DO_NOT_USE_CUBRIDENV)
+#if !defined (DO_NOT_USE_APIBROKERENV)
   if (envvar_Root == NULL)
     {
       envvar_root ();
@@ -458,7 +457,7 @@ envvar_vardir_file (char *path, size_t size, const char *filename)
 {
   assert (filename != NULL);
 
-#if !defined (DO_NOT_USE_CUBRIDENV)
+#if !defined (DO_NOT_USE_APIBROKERENV)
   if (envvar_Root == NULL)
     {
       envvar_root ();
@@ -477,7 +476,7 @@ envvar_tmpdir_file (char *path, size_t size, const char *filename)
 {
   assert (filename != NULL);
 
-#if !defined (DO_NOT_USE_CUBRIDENV)
+#if !defined (DO_NOT_USE_APIBROKERENV)
   if (envvar_Root == NULL)
     {
       envvar_root ();
@@ -496,7 +495,7 @@ envvar_logdir_file (char *path, size_t size, const char *filename)
 {
   assert (filename != NULL);
 
-#if !defined (DO_NOT_USE_CUBRIDENV)
+#if !defined (DO_NOT_USE_APIBROKERENV)
   if (envvar_Root == NULL)
     {
       envvar_root ();
@@ -542,7 +541,7 @@ envvar_ldmldir_file (char *path, size_t size, const char *filename)
 {
   assert (filename != NULL);
 
-#if !defined (DO_NOT_USE_CUBRIDENV)
+#if !defined (DO_NOT_USE_APIBROKERENV)
   if (envvar_Root == NULL)
     {
       envvar_root ();
@@ -561,7 +560,7 @@ envvar_codepagedir_file (char *path, size_t size, const char *filename)
 {
   assert (filename != NULL);
 
-#if !defined (DO_NOT_USE_CUBRIDENV)
+#if !defined (DO_NOT_USE_APIBROKERENV)
   if (envvar_Root == NULL)
     {
       envvar_root ();
@@ -580,7 +579,7 @@ envvar_localedatadir_file (char *path, size_t size, const char *filename)
 {
   assert (filename != NULL);
 
-#if !defined (DO_NOT_USE_CUBRIDENV)
+#if !defined (DO_NOT_USE_APIBROKERENV)
   if (envvar_Root == NULL)
     {
       envvar_root ();
@@ -599,7 +598,7 @@ envvar_loclib_dir_file (char *path, size_t size, const char *filename)
 {
   assert (filename != NULL);
 
-#if !defined (DO_NOT_USE_CUBRIDENV)
+#if !defined (DO_NOT_USE_APIBROKERENV)
   if (envvar_Root == NULL)
     {
       envvar_root ();
@@ -616,7 +615,7 @@ envvar_loclib_dir_file (char *path, size_t size, const char *filename)
 char *
 envvar_cubrid_dir (char *path, size_t size)
 {
-#if !defined (DO_NOT_USE_CUBRIDENV)
+#if !defined (DO_NOT_USE_APIBROKERENV)
   if (envvar_Root == NULL)
     {
       envvar_root ();
@@ -635,7 +634,7 @@ envvar_tzdata_dir_file (char *path, size_t size, const char *filename)
 {
   assert (filename != NULL);
 
-#if !defined (DO_NOT_USE_CUBRIDENV)
+#if !defined (DO_NOT_USE_APIBROKERENV)
   if (envvar_Root == NULL)
     {
       envvar_root ();

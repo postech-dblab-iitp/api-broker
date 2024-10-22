@@ -1,6 +1,5 @@
 #
-#  Copyright 2008 Search Solution Corporation
-#  Copyright 2016 CUBRID Corporation
+#  Copyright 2024 CUBRID Corporation
 # 
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -77,7 +76,7 @@ target_compile_definitions(broker_monitor PRIVATE ${BROKER_DEFS} FOR_API_BROKER 
 target_include_directories(broker_monitor PRIVATE ${BASE_DIR})
 target_link_libraries(broker_monitor LINK_PRIVATE -ldl)
 
-set(CUBRID_BROKER_SOURCES
+set(API_BROKER_BROKER_SOURCES
   ${BASE_DIR}/porting.c
   ${BROKER_DIR}/broker_config.c
   ${BROKER_DIR}/broker_admin.c
@@ -96,10 +95,10 @@ set(CUBRID_BROKER_SOURCES
   ${BASE_DIR}/environment_variable.c
   )
 SET_SOURCE_FILES_PROPERTIES(
-  ${CUBRID_BROKER_SOURCES}
+  ${API_BROKER_BROKER_SOURCES}
   PROPERTIES LANGUAGE CXX
   )
-add_executable(brokerutil ${CUBRID_BROKER_SOURCES})
+add_executable(brokerutil ${API_BROKER_BROKER_SOURCES})
 target_compile_definitions(brokerutil PRIVATE ${BROKER_DEFS} FOR_API_BROKER FOR_API_CAS)
 target_include_directories(brokerutil PRIVATE ${BASE_DIR})
 if(UNIX)
@@ -150,7 +149,7 @@ target_include_directories(api_cas PRIVATE ${S62_DIR})
 find_library (
   S62LIB
   NAMES libtbgpp-api-server-shared.so
-  HINTS /turbograph-v3/turbograph-v3/build/tbgpp-api-server
+  HINTS ${S62_LIB_DIR}
   REQUIRED)
 
 target_link_libraries(api_cas ${S62LIB})
@@ -173,7 +172,7 @@ target_link_libraries(api_cas ${S62LIB})
 #  PROPERTIES LANGUAGE CXX
 #  )
 #add_library(brokeradmin SHARED ${BROKERADMIN_SOURCES})
-#set_target_properties(brokeradmin PROPERTIES SOVERSION "${CUBRID_MAJOR_VERSION}.${CUBRID_MINOR_VERSION}")
+#set_target_properties(brokeradmin PROPERTIES SOVERSION "${API_BROKER_MAJOR_VERSION}.${API_BROKER_MINOR_VERSION}")
 #target_compile_definitions(brokeradmin PRIVATE ${BROKER_DEFS} _UC_ADMIN_SO_ FOR_API_BROKER FOR_API_CAS)
 #target_include_directories(brokeradmin PRIVATE ${BASE_DIR})
 
@@ -184,19 +183,13 @@ install(TARGETS
   brokerutil
   api_cas
 #  brokeradmin
-  RUNTIME DESTINATION ${CUBRID_BINDIR} COMPONENT Application
-  LIBRARY DESTINATION ${CUBRID_LIBDIR} COMPONENT Library
-  PUBLIC_HEADER DESTINATION ${CUBRID_INCLUDEDIR} COMPONENT Header
+  RUNTIME DESTINATION ${API_BROKER_BINDIR} COMPONENT Application
+  LIBRARY DESTINATION ${API_BROKER_LIBDIR} COMPONENT Library
+  PUBLIC_HEADER DESTINATION ${API_BROKER_INCLUDEDIR} COMPONENT Header
   )
 
+install(PROGRAMS
+    ${S62_API_SERVER_LIB}
+    DESTINATION ${API_BROKER_LIBDIR})
 
-# TODO: compat uc script?
 
-# install pdb files for debugging on windows
-if(WIN32)
-  install(DIRECTORY
-    ${CMAKE_CURRENT_BINARY_DIR}/\${CMAKE_INSTALL_CONFIG_NAME}/
-    DESTINATION ${CUBRID_BINDIR} COMPONENT Debuginfo
-    FILES_MATCHING PATTERN "*.pdb"
-    )
-endif(WIN32)

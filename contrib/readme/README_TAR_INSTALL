@@ -1,34 +1,34 @@
-Guide to setup CUBRID using setup.sh
+Guide to setup API Broker using setup.sh
 ====================================
 
-IGNORE THIS IF YOU INSTALLED CUBRID FROM THE SHELL OR RPM DISTRIBUTION.
+IGNORE THIS IF YOU INSTALLED API Broker FROM THE SHELL.
 
 ------------------
-If you try to install CUBRID from a tar distribution, setup.sh can help you
-to set environment for normal CUBRID operations.
+If you try to install API Broker from a tar distribution, setup.sh can help you
+to set environment for normal API Broker operations.
 
 Steps:
 1. Go to the directory where you untared (probably you already there)
-2. run setup.sh [cubrid_home]
+2. run setup.sh [api_broker_home]
 
 
 Example1
 ========
 
-$ wget http://ftp.cubrid.org/CUBRID_Engine/11.2/CUBRID-11.2.0.0658-496c148-Linux.x86_64.tar.gz
-$ tar xvf CUBRID-11.2.0.0658-496c148-Linux.x86_64.tar.gz
-$ cd CUBRID
+$ download API-BROKER-1.0.0.0022-0b9a9e0-Linux.x86_64.tar.gz
+$ tar xvf API-BROKER-1.0.0.0022-0b9a9e0-Linux.x86_64.tar.gz
+$ cd API-BROKER
 $ sh share/scripts/setup.sh
 
 Example2
 ========
-$ wget http://ftp.cubrid.org/CUBRID_Engine/11.2/CUBRID-11.2.0.0658-496c148-Linux.x86_64.tar.gz
-$ tar xvf CUBRID-11.2.0.0658-496c148-Linux.x86_64.tar.gz
-$ sh CUBRID/share/scripts/setup.sh CUBRID
+$ download API-BROKER-1.0.0.0022-0b9a9e0-Linux.x86_64.tar.gz
+$ tar xvf API-BROKER-1.0.0.0022-0b9a9e0-Linux.x86_64.tar.gz
+$ sh API-BROKER/share/scripts/setup.sh API-BROKER
 
-Then, depending on the shell you are using, either .cubrid.sh or .cubrid.csh will be
+Then, depending on the shell you are using, either .api-broker.sh or .api-broker.csh will be
 created in your home directory. That scripts includes modification of PATH and LD_LIBRARY_PATH
-environment variables required for the CUBRID.
+environment variables required for the API Broker.
 
-Futhermore, to execute the cubrid shell script (.cubrid.sh or .cubrid.csh) at the login time,
+Futhermore, to execute the api-broker shell script (.api-broker.sh or .api-broker.csh) at the login time,
 one of .bash_profile, .profile, .cshrc, and .zshrc will be modified.
