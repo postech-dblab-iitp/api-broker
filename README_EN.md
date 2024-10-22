@@ -7,28 +7,44 @@ https://img.shields.io/badge/language-Korean-blue.svg)](README.md)
 
 ## Build from Source
 ### Build Requirements
-- Docker must be configured and deployed using the TurboGraph++ repository.
-- And TurboGraph++ must be built.
-- Because we need the tbgpp-api-server library (libtbgpp-api-server-shared.so).
-- Please refer to the TurboGraph repository for installing and building Docker.
-
-- TurboGraph++ Repository - https://github.com/postech-dblab-iitp/turbograph-v3
-- Docker Container For Turbograph++ (Based on Ubuntu)
+- Since we need to use the TurboGraph++ library, we need to configure it based on a docker container that can build TubroGraph++.
+- For Docker installation and build, please refer to the TurboGraph++ repository (https://github.com/postech-dblab-iitp/turbograph-v3). (The provided docker container is based on Ubuntu OS.)
+```
+git clone https://github.com/postech-dblab-iitp/turbograph-v3.git
+cd turbograph-v3
+git checkout remotes/origin/main
+cd docker
+docker build . -t turbograph-image
+./run-docker-example.sh <database folder> <source data folder>
+```
 
 ### How to Build API Broker
 
 1. Download turbograph++ Source And Build.
-
-2. The following package installation is required.
- - systemtap-sdt-dev
+```
+cd /
+git clone https://github.com/postech-dblab-iitp/turbograph-v3.git
+cd /turbograph-v3
+git checkout main
+cd tbgpp-common/third_party/velox
+./scripts/setup-ubuntu.sh
+cd /turbograph-v3
+mkdir build
+cd build/
+cmake -GNinja -DCMAKE_BUILD_TYPE=Debug ..
+ninja
+```
+2. The following package installation for api broker is required.
+- systemtap-sdt-dev
  - zip
 ```
-example) apt install systemtap-sdt-dev
+apt install systemtap-sdt-dev
+apt install zip
 ```
 
-3. Build api-broker After TurboGraph++ Build
+3. Go to the Turbograph++ source location and download the API Broker source and build it.
 ```
-cd turbograph-v3
+cd /turbograph-v3
 git clone git@github.com:postech-dblab-iitp/api-broker.git
 cd api-broker
 ./build.sh 
@@ -57,7 +73,6 @@ If you add the example below, you can access the databases named tpch_sf1 and gd
 tpch_sf1       /data/tpch/sf1
 gdbdemo        /data/gdbdemo
 ```
-If a database is added, the API broker must be restarted.
 
 ### How to Execute
 - Start
