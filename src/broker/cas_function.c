@@ -125,6 +125,7 @@ static const char *type_str_tbl[] = {
   "DATETIMELTZ",		/* CCI_U_TYPE_DATETIMELTZ */
   "TIMETZ",			/* CCI_U_TYPE_TIMETZ */
   "JSON",			/* CCI_U_TYPE_JSON */
+  "HUGEINT",			/* CCI_U_TYPE_HUGEINT */
 };
 
 FN_RETURN
@@ -1111,6 +1112,7 @@ bind_value_print (char type, void *net_value, bool slow_log)
     case CCI_U_TYPE_STRING:
     case CCI_U_TYPE_NCHAR:
     case CCI_U_TYPE_VARNCHAR:
+    case CCI_U_TYPE_HUGEINT:
       {
 	INTL_CODESET charset = INTL_CODESET_UTF8;
 	char *str_val;

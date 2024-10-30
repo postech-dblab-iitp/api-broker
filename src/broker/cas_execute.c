@@ -257,8 +257,11 @@ static int value_to_netbuf (S62_RESULTSET * resultset, T_NET_BUF * net_buf, int 
 			    char column_type_flag);
 
 static s62_string hugeint_to_string(s62_hugeint *hugeint);
-static void time_to_timestamp(int64_t time, int *year, int *month, int *day, int *hh, int *mm, int *ss);
+static s62_hugeint char_to_hugeint(char **value);
+static void seconds_to_timestamp(int64_t time, int *year, int *month, int *day, int *hh, int *mm, int *ss);
 static void days_to_date(s62_date days, int *year, int *month, int *day);
+static void timestamp_to_micros(int64_t *m_seconds, int year, int month, int day,
+            int hh, int mm, int ss, int ms);
 
 static char cas_u_type[] = { 0,	/* 0 */
   CCI_U_TYPE_INT,		/* 1 */
@@ -688,7 +691,6 @@ ux_execute (T_SRV_HANDLE * srv_handle, char flag, int max_col_size, int max_row,
 
   srv_handle->is_from_current_transaction = true;
   hm_set_current_srv_handle (srv_handle->id);
-
   num_result = s62_execute (stmt_id, &resultset);
   if (num_result < 0)
     {
@@ -1715,6 +1717,7 @@ get_num_markers (char *stmt, char **return_stmt)
 	      if (*src == '?')
 		{
 		  sprintf (var, "$v%02d", i);
+      i++;
 		  memcpy (dest, var, strlen (var));
 		  dest = dest + strlen (var) - 1;
 		}
@@ -1933,6 +1936,7 @@ bind_from_netval (S62_STATEMENT * stmt_id, int idx, void *net_type, void *net_va
   int data_size;
   DB_VALUE db_val;
   char coercion_flag = TRUE;
+  int index = idx + 1;
 
   net_arg_get_char (type, net_type);
 
@@ -1981,7 +1985,7 @@ bind_from_netval (S62_STATEMENT * stmt_id, int idx, void *net_type, void *net_va
   switch (type)
     {
     case CCI_U_TYPE_NULL:
-      coercion_flag = FALSE;
+      s62_bind_null(stmt_id, index);
       break;
     case CCI_U_TYPE_CHAR:
     case CCI_U_TYPE_STRING:
@@ -1993,10 +1997,8 @@ bind_from_netval (S62_STATEMENT * stmt_id, int idx, void *net_type, void *net_va
 	int val_size;
 
 	net_arg_get_str (&value, &val_size, net_value);
-
 	val_size--;
-
-//      s62_bind_string (stmt_id, idx, value);
+  s62_bind_varchar (stmt_id, index, value);
       }
       break;
     case CCI_U_TYPE_NUMERIC:
@@ -2028,69 +2030,90 @@ bind_from_netval (S62_STATEMENT * stmt_id, int idx, void *net_type, void *net_va
 	  {
 	    precision--;
 	  }
+  s62_decimal decimal;
+  decimal.scale = (uint8_t) scale;
+  decimal.width = (uint8_t) precision;
+  decimal.value = char_to_hugeint(&value);
+  cas_log_write (0, true, "CCI_U_TYPE_NUMERIC upper : [%llu] lower : [%lld]", decimal.value.upper, decimal.value.lower);
+  s62_bind_decimal (stmt_id, index, decimal);
       }
-      coercion_flag = FALSE;
       break;
     case CCI_U_TYPE_BIGINT:
       {
 	int64_t bi_val;
-
 	net_arg_get_bigint (&bi_val, net_value);
+  s62_bind_int64(stmt_id, index, bi_val);
       }
       break;
     case CCI_U_TYPE_INT:
       {
-	int i_val;
-
+	int32_t i_val;
 	net_arg_get_int (&i_val, net_value);
-
-//      s62_bind_int (stmt_id, idx, i_val);
+  s62_bind_int32(stmt_id, index, i_val);
       }
       break;
     case CCI_U_TYPE_SHORT:
       {
-	short s_val;
-
+	int16_t s_val;
 	net_arg_get_short (&s_val, net_value);
-
-//      s62_bind_short (stmt_id, idx, s_val);
+  s62_bind_int16(stmt_id, index, s_val);
       }
       break;
     case CCI_U_TYPE_FLOAT:
       {
 	float f_val;
 	net_arg_get_float (&f_val, net_value);
+  s62_bind_float(stmt_id, index, f_val);
       }
       break;
     case CCI_U_TYPE_DOUBLE:
       {
 	double d_val;
 	net_arg_get_double (&d_val, net_value);
+  s62_bind_float(stmt_id, index, d_val);
       }
       break;
     case CCI_U_TYPE_DATE:
       {
-	short month, day, year;
-	net_arg_get_date (&year, &month, &day, net_value);
+  short year, month, day;
+  int64_t micros;
+  s62_date date;
+  net_arg_get_date (&year, &month, &day, net_value);
+  timestamp_to_micros(&micros, year, month, day, 0, 0, 0, 0);
+  int64_t day_micro_s = (24 * 60 * 60 * 1000000LL);
+  date.days = (micros + (day_micro_s / 2)) / day_micro_s;
+  cas_log_write (0, true, "CCI_U_TYPE_DATE days = [%d]", date.days);
+  s62_bind_date(stmt_id, index, date);
       }
       break;
     case CCI_U_TYPE_TIME:
       {
 	short hh, mm, ss;
+  s62_time time;
 	net_arg_get_time (&hh, &mm, &ss, net_value);
+  time.micros = (hh * mm * ss * 1000000LL);
+  cas_log_write (0, true, "CCI_U_TYPE_TIME [%d]-[%d]-[%d]", hh, mm, ss);
+  s62_bind_time(stmt_id, index, time);
       }
       break;
     case CCI_U_TYPE_TIMESTAMP:
       {
 	short yr, mon, day, hh, mm, ss;
+  s62_timestamp timestamp;
 	net_arg_get_timestamp (&yr, &mon, &day, &hh, &mm, &ss, net_value);
+  timestamp_to_micros(&timestamp.micros, yr, mon, day, hh, mm, ss, 0);
+  cas_log_write (0, true, "CCI_U_TYPE_TIMESTAMP ,micros [%lld]", timestamp.micros);
+  s62_bind_timestamp(stmt_id, index, timestamp);
       }
       break;
     case CCI_U_TYPE_DATETIME:
       {
 	short yr, mon, day, hh, mm, ss, ms;
-
+  s62_timestamp timestamp;
 	net_arg_get_datetime (&yr, &mon, &day, &hh, &mm, &ss, &ms, net_value);
+  timestamp_to_micros(&timestamp.micros, yr, mon, day, hh, mm, ss, ms);
+  cas_log_write (0, true, "CCI_U_TYPE_DATETIME ,micros [%lld]", timestamp.micros);
+  s62_bind_timestamp(stmt_id, index, timestamp);
       }
       break;
     case CCI_U_TYPE_MONETARY:
@@ -2110,6 +2133,18 @@ bind_from_netval (S62_STATEMENT * stmt_id, int idx, void *net_type, void *net_va
     case CCI_U_TYPE_USHORT:
     case CCI_U_TYPE_UINT:
     case CCI_U_TYPE_UBIGINT:
+      break;
+    case CCI_U_TYPE_HUGEINT:
+      {
+  s62_hugeint hugeint;
+  char *value;
+	int val_size;
+	net_arg_get_str (&value, &val_size, net_value);
+  hugeint = char_to_hugeint(&value);
+  cas_log_write (0, true, "CCI_U_TYPE_HUGEINT upper : [%llu] lower : [%lld]", hugeint.upper, hugeint.lower);
+  s62_bind_hugeint(stmt_id, index, hugeint);
+      }
+      break;
     default:
       return ERROR_INFO_SET (CAS_ER_UNKNOWN_U_TYPE, CAS_ERROR_INDICATOR);
     }
@@ -2142,6 +2177,8 @@ value_to_netbuf (S62_RESULTSET * resultset, T_NET_BUF * net_buf, int idx, int ma
 #else
   ext_col_type = 0;
 #endif
+
+  //cas_log_write (0, true, "--value_to_netbuf [%d]", column_type_flag);
   switch (column_type_flag)
     {
     case S62_TYPE_VARCHAR:
@@ -2245,9 +2282,13 @@ value_to_netbuf (S62_RESULTSET * resultset, T_NET_BUF * net_buf, int idx, int ma
 	s62_decimal f_decimal;
 	s62_string str;
 
+  cas_log_write (0, true, "--S62_TYPE_DECIMAL s62_get_decimal start index [%d]", idx);
 	f_decimal = s62_get_decimal (resultset, idx);
+  cas_log_write (0, true, "--S62_TYPE_DECIMAL s62_decimal_to_string start");
 	str = s62_decimal_to_string (f_decimal);
+  cas_log_write (0, true, "--S62_TYPE_DECIMAL add_res_data_string start str [%s]" , str);
 	add_res_data_string (net_buf, str.data, str.size, ext_col_type, CAS_SCHEMA_DEFAULT_CHARSET, &data_size);
+  cas_log_write (0, true, "--S62_TYPE_DECIMAL add_res_data_string end");
       }
       break;
     case S62_TYPE_DATE:
@@ -2264,7 +2305,7 @@ value_to_netbuf (S62_RESULTSET * resultset, T_NET_BUF * net_buf, int idx, int ma
   s62_time time_val;
   int hour, minute, second;
   time_val = s62_get_time(resultset, idx);
-  int64_t total_seconds = time_val.micros / 1000000;
+  int64_t total_seconds = time_val.micros / 1000000LL;
   hour = total_seconds / 3600;
   minute = (total_seconds % 3600) / 60;
   second = total_seconds % 60;
@@ -2276,7 +2317,7 @@ value_to_netbuf (S62_RESULTSET * resultset, T_NET_BUF * net_buf, int idx, int ma
   s62_timestamp timestamp;
   int yr, mon, day, hh, mm, ss;
   timestamp = s62_get_timestamp(resultset, idx);
-  time_to_timestamp(timestamp.micros, &yr, &mon, &day, &hh, &mm, &ss);
+  seconds_to_timestamp(timestamp.micros / 1000000LL, &yr, &mon, &day, &hh, &mm, &ss);
   add_res_data_timestamp (net_buf, (short) yr, (short) mon, (short) day, (short) hh, (short) mm, (short) ss,
   ext_col_type, &data_size);
       }
@@ -2559,8 +2600,17 @@ hugeint_to_string(s62_hugeint *hugeint)
 
 }
 
+static s62_hugeint
+char_to_hugeint(char **value)
+{
+  s62_hugeint hugeint;
+  sscanf(*value, "%" SCNd64".%" SCNu64, &hugeint.upper, &hugeint.lower);
+  return hugeint;
+
+}
+
 static void
-time_to_timestamp(int64_t time, int *year, int *month, int *day, int *hh, int *mm, int *ss)
+seconds_to_timestamp(int64_t seconds, int *year, int *month, int *day, int *hh, int *mm, int *ss)
 {
   //1970-01-01
   struct tm base_date = {0};
@@ -2569,7 +2619,7 @@ time_to_timestamp(int64_t time, int *year, int *month, int *day, int *hh, int *m
   base_date.tm_mday = 1;
 
   time_t base_time = mktime(&base_date);
-  time_t real_time = base_time + time;
+  time_t real_time = base_time + seconds;
   struct tm *real_tm = localtime(&real_time);
   *year = real_tm->tm_year + 1900;
   *month = real_tm->tm_mon + 1;
@@ -2582,7 +2632,27 @@ time_to_timestamp(int64_t time, int *year, int *month, int *day, int *hh, int *m
 static void
 days_to_date(s62_date date, int *year, int *month, int *day)
 {
-  int64_t time = (date.days * 24 * 60 * 60);
+  int64_t seconds = (date.days * 24 * 60 * 60);
   int hh, mm, ss;
-  time_to_timestamp(time, year, month, day, &hh, &mm, &ss);
+  seconds_to_timestamp(seconds, year, month, day, &hh, &mm, &ss);
+}
+
+static void
+timestamp_to_micros(int64_t *m_seconds, int year, int month, int day,
+                    int hh, int mm, int ss, int ms)
+{
+  s62_timestamp timestamp;
+  struct tm date = {0};
+  date.tm_year = year - 1900;
+  date.tm_mon = month - 1;
+  date.tm_mday = day;
+  date.tm_hour = hh;
+  date.tm_min = mm;
+  date.tm_sec = ss;
+
+  time_t real_time = mktime(&date);
+  time_t base_time = 0;
+
+  time_t seconds = real_time - base_time;
+  *m_seconds = (int64_t)seconds * 1000000LL + (ms * 1000);
 }
