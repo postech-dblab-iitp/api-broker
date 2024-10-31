@@ -932,6 +932,7 @@ int
 ux_get_query_info (int srv_h_id, char *sql_stmt, T_NET_BUF * net_buf)
 {
   T_SRV_HANDLE *srv_handle;
+  S62_RESULTSET *resultset = (S62_RESULTSET *) NULL;
   int err_code;
   char *errstr;
   int tmp_id = -1;
@@ -978,6 +979,8 @@ ux_get_query_info (int srv_h_id, char *sql_stmt, T_NET_BUF * net_buf)
       srv_handle->query_info_flag = TRUE;
       srv_handle->stmt_id = stmt_id;
     }
+
+  s62_execute (srv_handle->stmt_id, &resultset);
 
   net_buf_cp_int (net_buf, 0, NULL);
 
