@@ -263,6 +263,8 @@ static void days_to_date(s62_date days, int *year, int *month, int *day);
 static void timestamp_to_micros(int64_t *m_seconds, int year, int month, int day,
             int hh, int mm, int ss, int ms);
 
+static void error_msg_cpy(char **dest, char *msg);
+
 static char cas_u_type[] = { 0,	/* 0 */
   CCI_U_TYPE_INT,		/* 1 */
   CCI_U_TYPE_FLOAT,		/* 2 */
@@ -399,7 +401,8 @@ ux_database_connect (char *db_name, char *db_user, char *db_passwd, char **db_er
 
   if (db_name == NULL || db_name[0] == '\0')
     {
-      return ERROR_INFO_SET (-1, CAS_ERROR_INDICATOR);
+      error_msg_cpy(db_err_msg, "db name is empty.");
+      return ERROR_INFO_SET (-1, DBMS_ERROR_INDICATOR);
     }
 
   if (database_name[0] == '\0' || strcmp (database_name, db_name) != 0)
@@ -412,7 +415,8 @@ ux_database_connect (char *db_name, char *db_user, char *db_passwd, char **db_er
       if ((err_code = s62_get_workspace (db_name, (char *) workspace)) < 0)
 	{
 	  cas_log_write (0, true, "can't get workspace with %s [%d]", db_name, err_code);;
-	  return ERROR_INFO_SET (-2, CAS_ERROR_INDICATOR);
+	  error_msg_cpy(db_err_msg, "can't get workspace, please check dbname or data/databases.txt");
+	  return ERROR_INFO_SET (-2, DBMS_ERROR_INDICATOR);
 	}
 
       cas_log_write (0, true, "-- s62_connect (%s) -- before call\n", workspace);
@@ -420,6 +424,7 @@ ux_database_connect (char *db_name, char *db_user, char *db_passwd, char **db_er
 	{
 	  char *errstr;
 	  cas_log_write (0, true, "can't connect db with %s [%d]", workspace, s62_get_last_error (&errstr));;
+	  error_msg_cpy(db_err_msg, "can't connect db.");
 	  goto connect_error;
 	}
       cas_log_write (0, true, "-- s62_connect (%s) -- after call\n", workspace);
@@ -2658,4 +2663,11 @@ timestamp_to_micros(int64_t *m_seconds, int year, int month, int day,
 
   time_t seconds = real_time - base_time;
   *m_seconds = (int64_t)seconds * 1000000LL + (ms * 1000);
+}
+
+static void error_msg_cpy(char **dest, char *msg)
+{
+    size_t length = strlen(msg);
+    *dest = (char *) malloc(length);
+    strcpy(*dest, msg);
 }
