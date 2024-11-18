@@ -401,7 +401,7 @@ ux_database_connect (char *db_name, char *db_user, char *db_passwd, char **db_er
 
   if (db_name == NULL || db_name[0] == '\0')
     {
-      error_msg_cpy(db_err_msg, "db name is empty.");
+      error_msg_cpy(db_err_msg, (char *)"db name is empty.");
       return ERROR_INFO_SET (-1, DBMS_ERROR_INDICATOR);
     }
 
@@ -415,7 +415,7 @@ ux_database_connect (char *db_name, char *db_user, char *db_passwd, char **db_er
       if ((err_code = s62_get_workspace (db_name, (char *) workspace)) < 0)
 	{
 	  cas_log_write (0, true, "can't get workspace with %s [%d]", db_name, err_code);;
-	  error_msg_cpy(db_err_msg, "can't get workspace, please check dbname or data/databases.txt");
+	  error_msg_cpy(db_err_msg, (char *)"can't get workspace, please check dbname or data/databases.txt");
 	  return ERROR_INFO_SET (-2, DBMS_ERROR_INDICATOR);
 	}
 
@@ -424,7 +424,7 @@ ux_database_connect (char *db_name, char *db_user, char *db_passwd, char **db_er
 	{
 	  char *errstr;
 	  cas_log_write (0, true, "can't connect db with %s [%d]", workspace, s62_get_last_error (&errstr));;
-	  error_msg_cpy(db_err_msg, "can't connect db.");
+	  error_msg_cpy(db_err_msg, (char *)"can't connect db.");
 	  goto connect_error;
 	}
       cas_log_write (0, true, "-- s62_connect (%s) -- after call\n", workspace);
@@ -1993,8 +1993,8 @@ bind_from_netval (S62_STATEMENT * stmt_id, int idx, void *net_type, void *net_va
   switch (type)
     {
     case CCI_U_TYPE_NULL:
-      s62_bind_null(stmt_id, index);
-      break;
+  s62_bind_null(stmt_id, index);
+  break;
     case CCI_U_TYPE_CHAR:
     case CCI_U_TYPE_STRING:
     case CCI_U_TYPE_ENUM:
@@ -2084,14 +2084,10 @@ bind_from_netval (S62_STATEMENT * stmt_id, int idx, void *net_type, void *net_va
     case CCI_U_TYPE_DATE:
       {
   short year, month, day;
-  int64_t micros;
-  s62_date date;
+  char date[11];
   net_arg_get_date (&year, &month, &day, net_value);
-  timestamp_to_micros(&micros, year, month, day, 0, 0, 0, 0);
-  int64_t day_micro_s = (24 * 60 * 60 * 1000000LL);
-  date.days = (micros + (day_micro_s / 2)) / day_micro_s;
-  cas_log_write (0, true, "CCI_U_TYPE_DATE days = [%d]", date.days);
-  s62_bind_date(stmt_id, index, date);
+  sprintf(date, "%04d-%02d-%02d", year, month, day);
+  s62_bind_date_string(stmt_id, index, date);
       }
       break;
     case CCI_U_TYPE_TIME:
