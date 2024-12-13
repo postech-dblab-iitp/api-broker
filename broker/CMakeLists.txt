@@ -148,7 +148,7 @@ target_include_directories(api_cas PRIVATE ${S62_DIR})
 
 find_library (
   S62LIB
-  NAMES libtbgpp-api-server-shared.so
+  NAMES ${S62_LIB_NAME}
   HINTS ${S62_LIB_DIR}
   REQUIRED)
 

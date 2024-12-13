@@ -274,18 +274,19 @@ endif(CMAKE_BUILD_TYPE MATCHES "Profile")
 set(BASE_DIR                 ${CMAKE_SOURCE_DIR}/src/base)
 set(BROKER_DIR               ${CMAKE_SOURCE_DIR}/src/broker)
 set(S62_DIR                  ${CMAKE_SOURCE_DIR}/src/s62)
-get_filename_component(S62_LIB_DIR "../build/tbgpp-api-server" ABSOLUTE)
+set(S62_LIB_NAME             "libtbgpp-c-api-shared.so")
+get_filename_component(S62_LIB_DIR "../build/tbgpp-api/c-api" ABSOLUTE)
 message("-- S62_LIB_DIR = ${S62_LIB_DIR}")
 
 find_file(S62_API_SERVER_LIB
-        "libtbgpp-api-server-shared.so"
+        ${S62_LIB_NAME}
         PATH ${S62_LIB_DIR}
         NO_DEFAULT_PATH
         REQUIRED)
 message("-- S62_API_SERVER_LIB = ${S62_API_SERVER_LIB}")
 
 if(S62_API_SERVER_LIB MATCHES "S62_API_SERVER_LIB-NOTFOUND")
-message(FATAL_ERROR "S62_API_SERVER_LIB IS NOT FOUND PATH : ${S62_LIB_DIR}/libtbgpp-api-server-shared.so")
+message(FATAL_ERROR "S62_API_SERVER_LIB IS NOT FOUND PATH : ${S62_LIB_DIR}/${S62_LIB_NAME}")
 endif(S62_API_SERVER_LIB MATCHES "S62_API_SERVER_LIB-NOTFOUND")
 
 
